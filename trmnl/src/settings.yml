@@ -1,0 +1,29 @@
+---
+strategy: polling
+no_screen_padding: 'no'
+dark_mode: 'no'
+static_data: ''
+polling_verb: get
+framework_version: latest
+serverless_language: ''
+polling_url: https://swiftly-trmnl.zelei.workers.dev?agency={{ agency }}&route={{ route }}
+polling_headers: Authorization=Bearer {{ api_key }}
+polling_body: ''
+id: 310138
+custom_fields:
+- keyname: agency
+  field_type: string
+  placeholder: sfbay-ferry
+  name: Agency
+  description: The agency key provided to you by Swiftly
+- keyname: route
+  field_type: number
+  placeholder: 19417
+  name: Route
+  description: The route key that you wish to poll
+- keyname: api_key
+  field_type: string
+  name: Proxy API Key
+  description: The API key used to authenticate with your Swiftly proxy (not the API key provided by Swiftly!)
+name: Swiftly
+refresh_interval: 15

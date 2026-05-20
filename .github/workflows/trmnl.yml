@@ -1,0 +1,40 @@
+name: TRMNL
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# The trmnlp plugin lives in the trmnl/ subdirectory, not the repo root.
+defaults:
+  run:
+    working-directory: trmnl
+
+jobs:
+  # Render the templates to static HTML — fails if any Liquid is broken.
+  # (trmnlp 0.7.x has no `lint` command; `build` is the equivalent check.)
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - run: gem install trmnl_preview
+      - run: trmnlp build
+
+  # Deploy the templates + settings.yml to TRMNL on merge to main.
+  # Requires the TRMNL_API_KEY repo secret and an `id:` in src/settings.yml.
+  push:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.4"
+      - run: gem install trmnl_preview
+      - run: trmnlp push --force
+        env:
+          TRMNL_API_KEY: ${{ secrets.TRMNL_API_KEY }}
