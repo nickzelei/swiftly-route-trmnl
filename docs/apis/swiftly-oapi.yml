@@ -1,0 +1,3068 @@
+swagger: '2.0'
+info:
+  title: Swiftly API Reference
+  version: '1.0'
+  description: |
+    This guide is designed to provide you with everything you need to familiarize yourself with Swiftly’s real-time transit data, and if authorized, to access the data via API.
+
+    ### API Overview
+
+    Swiftly Transitime APIs provide real-time vehicle location information in GTFS-rt, JSON, XML, or SIRI formats.
+
+    Transit agencies and operators that purchase Swiftly Transtime can provide their real-time transit data to 3rd parties for the purpose of developing applications, websites, and other interfaces to surface real-time transit information.
+
+    Swiftly welcomes extending and creating a broad ecosystem of applications using our real-time transit data. All Swiftly API use must be compliant with [Swiftly's Terms of Service](https://www.goswift.ly/saas-terms-of-service) and [API License Agreement](https://www.goswift.ly/api-license/).
+
+    ### Authorization
+
+    Before we dive into the specifics of the Swiftly API endpoints, let’s talk about authorization. All requests to the Swiftly API must be authorized. Authorization is accomplished by including an HTTP header named “Authorization.” The value of this header field must contain a valid API key.
+
+    You can view your API Key in the API Guide when logged into your Swiftly account. If you do not yet have access to a Swiftly account to view API information, you can request one by submitting an application via [this form](http://goswift.ly/realtime-api-key).
+paths:
+  /test-key:
+    get:
+      responses:
+        '200':
+          description: Success.
+          schema:
+            type: object
+            properties:
+              route:
+                $ref: '#/definitions/Common_Oas2_Api-route'
+              success:
+                $ref: '#/definitions/Common_Oas2_Success'
+            required:
+              - route
+              - success
+          examples:
+            application/json:
+              route: /test-key GET
+              success: true
+        '401':
+          $ref: '#/responses/401%20-%20Swiftly'
+        '403':
+          $ref: '#/responses/403%20-%20Swiftly'
+      security:
+        - Authorization: []
+      summary: Test Key
+      tags:
+        - Test Key
+      produces:
+        - application/json
+      description: 'Test whether your API key is working! Run the test-key API call using your Swiftly issued API key to confirm that you are getting valid results. The results will have success=true if the test was successful. '
+  '/info/{agencyKey}':
+    get:
+      responses:
+        '200':
+          description: Success.
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                required:
+                  - agencyKey
+                  - extent
+                  - name
+                  - timezone
+                  - url
+                properties:
+                  agencyKey:
+                    $ref: '#/definitions/Common_Oas2_AgencyKey'
+                  extent:
+                    type: object
+                    description: The minimum and maximum latitude and longitude coordinates of a bounding box that contains all routes the agency serves.
+                    required:
+                      - maxLat
+                      - maxLon
+                      - minLat
+                      - minLon
+                    properties:
+                      maxLat:
+                        type: number
+                        description: Maximum latitude of the bounding box that contains all routes in the agency
+                      maxLon:
+                        type: number
+                        description: Maximum longitude of the bounding box that contains all routes in the agency
+                      minLat:
+                        type: number
+                        description: Minimum latitude of the bounding box that contains all routes in the agency
+                      minLon:
+                        type: number
+                        description: Minimum longitude of the bounding box that contains all routes in the agency
+                  name:
+                    type: string
+                    description: The agency name. This matches the `agency_name` field in the agency.txt GTFS file.
+                  timezone:
+                    type: string
+                    description: The agency timezone. This matches the `agency_timezone` field in the agency.txt GTFS file.
+                  url:
+                    type: string
+                    description: The agency URL. This matches the `agency_url` field in the agency.txt GTFS file.
+              route:
+                $ref: '#/definitions/Common_Oas2_Api-route'
+              success:
+                $ref: '#/definitions/Common_Oas2_Success'
+            required:
+              - data
+              - route
+              - success
+          examples:
+            application/json:
+              data:
+                agencyKey: sfmta
+                extent:
+                  maxLat: 37.83644
+                  maxLon: -122.36633
+                  minLat: 37.70576
+                  minLon: -122.53867
+                name: San Francisco MTA
+                timezone: America/Los_Angeles
+                url: 'http://www.sfmta.com'
+              route: /info/sfmta GET
+              success: true
+        '400':
+          $ref: '#/responses/400%20-%20Swiftly'
+        '401':
+          $ref: '#/responses/401%20-%20Swiftly'
+        '403':
+          $ref: '#/responses/403%20-%20Swiftly'
+        '429':
+          $ref: '#/responses/429%20-%20Swiftly'
+        '503':
+          $ref: '#/responses/503%20-%20Swiftly'
+      summary: Agency info
+      security:
+        - Authorization: []
+      parameters:
+        - $ref: '#/parameters/agencyKey'
+      description: 'Fetches information about an agency including agency name, timezone and url. Swiftly''s agency info originates from an agency''s raw data as specified in their GTFS files. Where appropriate, Swiftly adds normalization and supplementary information.'
+      tags:
+        - Agency Info
+      produces:
+        - application/json
+    parameters:
+      - $ref: '#/parameters/agencyKey'
+  '/info/{agencyKey}/routes':
+    get:
+      responses:
+        '200':
+          description: Success.
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  agencyKey:
+                    $ref: '#/definitions/Common_Oas2_AgencyKey'
+                  routes:
+                    type: array
+                    items:
+                      $ref: '#/definitions/Common_Oas2_Route'
+                required:
+                  - agencyKey
+              route:
+                $ref: '#/definitions/Common_Oas2_Api-route'
+              success:
+                $ref: '#/definitions/Common_Oas2_Success'
+          examples:
+            application/json:
+              data:
+                agencyKey: sfmta
+                routes:
+                  - id: '13228'
+                    longName: Judah
+                    name: N - Judah
+                    shortName: 'N'
+                    type: '0'
+                  - id: '13221'
+                    longName: Embarcadero
+                    name: Embarcadero
+                    shortName: E
+                    type: '0'
+                  - id: '13222'
+                    longName: Market & Wharves
+                    name: F - Market & Wharves
+                    shortName: F
+                    type: '0'
+                  - id: '13160'
+                    longName: California
+                    name: 1 - California
+                    shortName: '1'
+                    type: '3'
+                  - id: '1033'
+                    longName: California A Express
+                    name: 1AX - California A Express
+                    shortName: 1AX
+                    type: '3'
+                  - id: '1034'
+                    longName: California B Express
+                    name: 1BX - California B Express
+                    shortName: 1BX
+                    type: '3'
+                  - id: '13162'
+                    longName: Sutter/Clement
+                    name: 2 - Sutter/Clement
+                    shortName: '2'
+                    type: '3'
+                  - id: '13163'
+                    longName: Jackson
+                    name: 3 - Jackson
+                    shortName: '3'
+                    type: '3'
+                  - id: '13164'
+                    longName: Fulton
+                    name: 5 - Fulton
+                    shortName: '5'
+                    type: '3'
+                  - id: '13165'
+                    longName: Fulton Rapid
+                    name: 5R - Fulton Rapid
+                    shortName: 5R
+                    type: '3'
+                  - id: '13166'
+                    longName: Haight-Parnassus
+                    name: 6 - Haight-Parnassus
+                    shortName: '6'
+                    type: '3'
+                  - id: '13167'
+                    longName: Haight-Noriega
+                    name: 7 - Haight-Noriega
+                    shortName: '7'
+                    type: '3'
+                  - id: '13168'
+                    longName: Noriega Express
+                    name: 7X - Noriega Express
+                    shortName: 7X
+                    type: '3'
+                  - id: '1110'
+                    longName: Bayshore
+                    name: 8 - Bayshore
+                    shortName: '8'
+                    type: '3'
+                  - id: '1108'
+                    longName: Bayshore A Express
+                    name: 8AX - Bayshore A Express
+                    shortName: 8AX
+                    type: '3'
+                  - id: '1109'
+                    longName: Bayshore B Express
+                    name: 8BX - Bayshore B Express
+                    shortName: 8BX
+                    type: '3'
+                  - id: '13170'
+                    longName: San Bruno
+                    name: 9 - San Bruno
+                    shortName: '9'
+                    type: '3'
+                  - id: '13171'
+                    longName: San Bruno Rapid
+                    name: 9R - San Bruno Rapid
+                    shortName: 9R
+                    type: '3'
+                  - id: '13172'
+                    longName: Townsend
+                    name: 10 - Townsend
+                    shortName: '10'
+                    type: '3'
+                  - id: '13173'
+                    longName: Folsom-Pacific
+                    name: 12 - Folsom-Pacific
+                    shortName: '12'
+                    type: '3'
+                  - id: '13174'
+                    longName: Mission
+                    name: 14 - Mission
+                    shortName: '14'
+                    type: '3'
+                  - id: '13175'
+                    longName: Mission Rapid
+                    name: 14R - Mission Rapid
+                    shortName: 14R
+                    type: '3'
+                  - id: '13176'
+                    longName: Mission Express
+                    name: 14X - Mission Express
+                    shortName: 14X
+                    type: '3'
+                  - id: '13177'
+                    longName: 46th Avenue
+                    name: 18 - 46th Avenue
+                    shortName: '18'
+                    type: '3'
+              route: /info/sfmta/routes GET
+              success: true
+        '400':
+          $ref: '#/responses/400%20-%20Swiftly'
+        '401':
+          $ref: '#/responses/401%20-%20Swiftly'
+        '403':
+          $ref: '#/responses/403%20-%20Swiftly'
+        '429':
+          $ref: '#/responses/429%20-%20Swiftly'
+        '503':
+          $ref: '#/responses/503%20-%20Swiftly'
+      summary: Agency routes
+      description: |-
+        Fetches information about an agency's routes. The data originates from an agency's raw data as specified in their GTFS files. Where appropriate, Swiftly adds normalization and supplementary information. 
+
+        By default this endpoint will provide a list with information on all routes in the system. To access information on one route or a subset of the routes, provide the `route` query parameter with the list of routes you want data for. To get more detailed information on the routes including the route shape information and the stops associated with the route, include the query parameter `verbose=true`. A detailed schema and example data are provided below.
+      security:
+        - Authorization: []
+      parameters:
+        - $ref: '#/parameters/agencyKey'
+        - $ref: '#/parameters/route'
+        - in: query
+          name: verbose
+          type: string
+          description: 'If present, includes 3 additional nodes of information: directions, shapes, and extent'
+      tags:
+        - Agency Info
+      produces:
+        - application/json
+    parameters:
+      - $ref: '#/parameters/agencyKey'
+  '/real-time/{agencyKey}/predictions':
+    parameters:
+      - $ref: '#/parameters/agencyKey'
+    get:
+      responses:
+        '200':
+          description: Success.
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  agencyKey:
+                    $ref: '#/definitions/Common_Oas2_AgencyKey'
+                  predictionsData:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        routeShortName:
+                          type: string
+                          description: The `route_short_name` from GTFS. This is often a route number or letter that describes the route (i.e. "5R" or "28").
+                        routeName:
+                          type: string
+                          description: A combination of the route short name and long name.
+                        routeId:
+                          type: string
+                          description: Matches the `route_id` from GTFS. This is an ID that uniquely identifies the route.
+                        stopId:
+                          type: string
+                          description: 'Matches the GTFS `stop_id`. It is an ID that uniquely identifies a stop, station, or station entrance. Multiple routes may use the same stop.'
+                        stopName:
+                          type: string
+                          description: 'Matches GTFS `stop_name`. This field contains the name of a stop, station, or station entrance.'
+                        stopCode:
+                          type: integer
+                          description: Matches the `stop_code` field from GTFS. It contains short text or a number that uniquely identifies the stop for passengers. Stop codes are often used in phone-based transit information systems or printed on stop signage to make it easier for riders to get a stop schedule or real-time arrival information for a particular stop.
+                        destinations:
+                          type: array
+                          items:
+                            $ref: '#/definitions/Common_Oas2_Destination-prediction'
+                      required:
+                        - routeShortName
+                        - routeName
+                        - routeId
+                        - stopId
+                        - stopName
+                required:
+                  - agencyKey
+                  - predictionsData
+              route:
+                $ref: '#/definitions/Common_Oas2_Api-route'
+              success:
+                $ref: '#/definitions/Common_Oas2_Success'
+            required:
+              - data
+          examples:
+            application/json:
+              data:
+                agencyKey: sfmta
+                predictionsData:
+                  - destinations:
+                      - directionId: '0'
+                        headsign: Quintara + 14th Avenue
+                        predictions:
+                          - min: 15
+                            sec: 927
+                            time: 1534289343
+                            tripId: '8097504'
+                            vehicleId: '5413'
+                          - min: 25
+                            sec: 1527
+                            time: 1534289943
+                            tripId: '8097505'
+                            vehicleId: '5461'
+                          - min: 35
+                            sec: 2127
+                            time: 1534290543
+                            tripId: '8097506'
+                            vehicleId: '5450'
+                    routeId: '13166'
+                    routeName: 6 - Haight-Parnassus
+                    routeShortName: '6'
+                    stopCode: 15639
+                    stopId: '5639'
+                    stopName: Market St & 2nd St
+              route: /real-time/sfmta/predictions GET
+              success: true
+            application/xml: |
+              <reponse>
+                <success>true</success>
+                <route>/real-time/sfmta/predictions GET</route>
+                <data>
+                  <agencyKey>sfmta</agencyKey>
+                  <predictionsData>
+                    <routeShortName>F</routeShortName>
+                    <routeName>F - Market &amp; Wharves</routeName>
+                    <routeId>13454</routeId>
+                    <stopId>5639</stopId>
+                    <stopName>Market St &amp; 2nd St</stopName>
+                    <stopCode>15639</stopCode>
+                    <destinations>
+                      <directionId>0</directionId>
+                      <headsign>Castro</headsign>
+                      <predictions>
+                        <time>1550281202</time>
+                        <sec>199</sec>
+                        <min>3</min>
+                        <tripId>8260873</tripId>
+                        <vehicleId>1059</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550281740</time>
+                        <sec>737</sec>
+                        <min>12</min>
+                        <tripId>8260872</tripId>
+                        <vehicleId>1073</vehicleId>
+                      </predictions>
+                    </destinations>
+                  </predictionsData>
+                  <predictionsData>
+                    <routeShortName>6</routeShortName>
+                    <routeName>6 - Haight-Parnassus</routeName>
+                    <routeId>13398</routeId>
+                    <stopId>5639</stopId>
+                    <stopName>Market St &amp; 2nd St</stopName>
+                    <stopCode>15639</stopCode>
+                    <destinations>
+                      <directionId>0</directionId>
+                      <headsign>Quintara + 14th Avenue</headsign>
+                      <predictions>
+                        <time>1550281891</time>
+                        <sec>887</sec>
+                        <min>14</min>
+                        <tripId>8211112</tripId>
+                        <vehicleId>5792</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282482</time>
+                        <sec>1479</sec>
+                        <min>24</min>
+                        <tripId>8211110</tripId>
+                        <vehicleId>5778</vehicleId>
+                      </predictions>
+                    </destinations>
+                  </predictionsData>
+                  <predictionsData>
+                    <routeShortName>7</routeShortName>
+                    <routeName>7 - Haight-Noriega</routeName>
+                    <routeId>13399</routeId>
+                    <stopId>5639</stopId>
+                    <stopName>Market St &amp; 2nd St</stopName>
+                    <stopCode>15639</stopCode>
+                    <destinations>
+                      <directionId>0</directionId>
+                      <headsign>Great Highway</headsign>
+                      <predictions>
+                        <time>1550281091</time>
+                        <sec>87</sec>
+                        <min>1</min>
+                        <tripId>8212779</tripId>
+                        <vehicleId>8829</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282100</time>
+                        <sec>1097</sec>
+                        <min>18</min>
+                        <tripId>8212778</tripId>
+                        <vehicleId>8869</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550283376</time>
+                        <sec>2373</sec>
+                        <min>39</min>
+                        <tripId>8212776</tripId>
+                        <vehicleId>8804</vehicleId>
+                      </predictions>
+                    </destinations>
+                  </predictionsData>
+                  <predictionsData>
+                    <routeShortName>9</routeShortName>
+                    <routeName>9 - San Bruno</routeName>
+                    <routeId>13402</routeId>
+                    <stopId>5639</stopId>
+                    <stopName>Market St &amp; 2nd St</stopName>
+                    <stopCode>15639</stopCode>
+                    <destinations>
+                      <directionId>0</directionId>
+                      <headsign>Cow Palace</headsign>
+                      <predictions>
+                        <time>1550281280</time>
+                        <sec>277</sec>
+                        <min>4</min>
+                        <tripId>8217427</tripId>
+                        <vehicleId>8624</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282097</time>
+                        <sec>1094</sec>
+                        <min>18</min>
+                        <tripId>8217426</tripId>
+                        <vehicleId>8824</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282800</time>
+                        <sec>1796</sec>
+                        <min>29</min>
+                        <tripId>8217425</tripId>
+                        <vehicleId>8867</vehicleId>
+                      </predictions>
+                    </destinations>
+                  </predictionsData>
+                  <predictionsData>
+                    <routeShortName>9R</routeShortName>
+                    <routeName>9R - San Bruno Rapid</routeName>
+                    <routeId>13403</routeId>
+                    <stopId>5639</stopId>
+                    <stopName>Market St &amp; 2nd St</stopName>
+                    <stopCode>15639</stopCode>
+                    <destinations>
+                      <directionId>0</directionId>
+                      <headsign>Cow Palace</headsign>
+                      <predictions>
+                        <time>1550281776</time>
+                        <sec>773</sec>
+                        <min>12</min>
+                        <tripId>8219170</tripId>
+                        <vehicleId>6651</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282248</time>
+                        <sec>1244</sec>
+                        <min>20</min>
+                        <tripId>8219169</tripId>
+                        <vehicleId>6719</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282805</time>
+                        <sec>1801</sec>
+                        <min>30</min>
+                        <tripId>8219168</tripId>
+                        <vehicleId>6685</vehicleId>
+                      </predictions>
+                    </destinations>
+                  </predictionsData>
+                </data>
+              </reponse>
+        '400':
+          $ref: '#/responses/400%20-%20Swiftly'
+        '401':
+          $ref: '#/responses/401%20-%20Swiftly'
+        '403':
+          $ref: '#/responses/403%20-%20Swiftly'
+        '429':
+          $ref: '#/responses/429%20-%20Swiftly'
+        '503':
+          $ref: '#/responses/503%20-%20Swiftly'
+      parameters:
+        - in: query
+          name: stop
+          type: string
+          description: The stop id (GTFS stop id) or agency stop code.
+          required: true
+        - in: query
+          name: route
+          type: string
+          description: 'The route key, as a string. If not included, includes data for all routes that visit the stop.'
+        - in: query
+          name: number
+          type: integer
+          default: 3
+          description: 'The number of future predictions to return per route/stop in the response. If not provided defaults to 3. If fewer than `number` prediction are returned in the response, this means that there are fewer than `number` future predictions available for that route and stop.'
+        - in: header
+          name: Accept
+          type: string
+          description: Set to `application/xml` for XML format or `application/json` for JSON (default).
+      summary: Predictions
+      tags:
+        - Real-time
+      security:
+        - Authorization: []
+      description: |-
+        Fetches real-time arrival predictions for a given stop id or stop code designated by the `stop` required query parameter.
+
+        If `stop` refers to a stop id - the stop id must match the GTFS `stop_id`, a unique identifier of a stop, station, or station entrance.  If `stop` refers to a stop code the stop code must match the `stop_code` field from GTFS. The stop code is an optional field in GTFS and is generally some short text or a number that uniquely identifies the stop for passengers. Stop codes are often used in phone-based transit information systems or printed on stop signage to make it easier for riders to get a stop schedule or real-time arrival information for a particular stop. Note that multiple routes may use the same stop.
+
+        The `route` is an optional query parameter. If the route is specified, then the results will only include predictions for that stop on the specified route. Otherwise the returned predictions data will include all routes that contain the stop.
+
+        The `number` designates the number of future predictions to return per route/stop in the response, defaulting to 3 predictions if not provided. If fewer than `number` predictions are returned in the response, this means that there are fewer than `number` future predictions available for that route and stop combination at this time.
+      produces:
+        - application/xml
+        - application/json
+  '/real-time/{agencyKey}/vehicles':
+    parameters:
+      - $ref: '#/parameters/agencyKey'
+    get:
+      responses:
+        '200':
+          description: Success.
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                required:
+                  - agencyKey
+                  - vehicles
+                properties:
+                  agencyKey:
+                    $ref: '#/definitions/Common_Oas2_AgencyKey'
+                  vehicles:
+                    $ref: '#/definitions/Common_Oas2_Realtime-vehicles'
+              route:
+                $ref: '#/definitions/Common_Oas2_Api-route'
+              success:
+                $ref: '#/definitions/Common_Oas2_Success'
+            required:
+              - data
+              - route
+              - success
+          examples:
+            application/json:
+              data:
+                agencyKey: sfmta
+                vehicles:
+                  - directionId: '0'
+                    headsign: West Portal Ave/Sloat/Portola
+                    id: '1550'
+                    loc:
+                      heading: 113.8
+                      lat: 37.72179
+                      lon: -122.44705
+                      speed: 0
+                      time: 1534287835
+                    routeId: '13223'
+                    routeShortName: KJ
+                    vehicleType: '0'
+              route: /real-time/sfmta/vehicles GET
+              success: true
+            application/json-verbose:
+              data:
+                agencyKey: sfmta
+                vehicles:
+                  - block: '9308'
+                    blockMthd: AVL_FEED_BLOCK_ASSIGNMENT
+                    direction: '1'
+                    headsign: Embarcadero Station
+                    headwaySecs: 483
+                    id: '1495'
+                    loc:
+                      heading: 342.1
+                      lat: 37.76095
+                      lon: -122.42814
+                      speed: 1.4
+                      time: 1530759697
+                    nextStopId: '6213'
+                    nextStopName: Right Of Way/18th St
+                    previousVehicleId: '1519'
+                    previousVehicleSchAdhSecs: 211.8
+                    previousVehicleSchAdhStr: 3.5 minutes (late)
+                    routeId: '13223'
+                    routeName: KJ - Ingleside/Church
+                    routeShortName: KJ
+                    schAdh: -86013
+                    schAdhSecs: -86
+                    schAdhStr: '-86.0 sec (early)'
+                    scheduledHeadwaySecs: 780
+                    serviceId: '3'
+                    serviceName: 3 - Sunday
+                    trip: '8187628'
+                    tripPattern: route_KJ_6503_to_6992_9801534c
+                    vehicleType: '0'
+                  - block: '9310'
+                    blockMthd: AVL_FEED_BLOCK_ASSIGNMENT
+                    direction: '0'
+                    headsign: Balboa Park Station
+                    headwaySecs: 223.9
+                    id: '1550'
+                    loc:
+                      heading: 33.7
+                      lat: 37.7219
+                      lon: -122.44585
+                      speed: 3.1
+                      time: 1530759709
+                    nextStopId: '5784'
+                    nextStopName: Ocean Ave/CCSF Pedestrian Bridge
+                    previousVehicleId: '1510'
+                    previousVehicleSchAdhSecs: 377.1
+                    previousVehicleSchAdhStr: 6.3 minutes (late)
+                    routeId: '13223'
+                    routeName: KJ - Ingleside/Church
+                    routeShortName: KJ
+                    schAdh: 18123
+                    schAdhSecs: 18.1
+                    schAdhStr: 18.1 sec (late)
+                    scheduledHeadwaySecs: 583
+                    serviceId: '3'
+                    serviceName: 3 - Sunday
+                    trip: '8187492'
+                    tripPattern: route_KJ_6992_to_7109_6c7dd48f
+                    vehicleType: '0'
+                  - block: '9307'
+                    blockMthd: AVL_FEED_BLOCK_ASSIGNMENT
+                    direction: '0'
+                    headsign: Balboa Park Station
+                    headwaySecs: 684.2
+                    id: '1462'
+                    loc:
+                      heading: 266.5
+                      lat: 37.76958
+                      lon: -122.42776
+                      source: NextBus
+                      speed: 0
+                      time: 1530759721
+                    nextStopId: '7859'
+                    nextStopName: Duboce Ave & Church St
+                    previousVehicleId: '1488'
+                    previousVehicleSchAdhSecs: -305
+                    previousVehicleSchAdhStr: '-5.1 minutes (early)'
+                    routeId: '13223'
+                    routeName: KJ - Ingleside/Church
+                    routeShortName: KJ
+                    schAdh: -205310
+                    schAdhSecs: -205.3
+                    schAdhStr: '-3.4 minutes (early)'
+                    scheduledHeadwaySecs: 600
+                    serviceId: '3'
+                    serviceName: 3 - Sunday
+                    trip: '8187489'
+                    tripPattern: route_KJ_6992_to_7109_6c7dd48f
+                    vehicleType: '0'
+                  - block: '9301'
+                    blockMthd: AVL_FEED_BLOCK_ASSIGNMENT
+                    direction: '1'
+                    headsign: Balboa Park Station
+                    headwaySecs: 1561.8
+                    id: '1512'
+                    layover: true
+                    layoverDepTime: 1530760320
+                    layoverDepTimeStr: '20:12:00'
+                    loc:
+                      heading: 182.8
+                      lat: 37.73627
+                      lon: -122.4708
+                      source: NextBus
+                      speed: 0
+                      time: 1530759672
+                    nextStopId: '6503'
+                    nextStopName: West Portal/Sloat/St Francis Circle
+                    previousVehicleId: '1433'
+                    previousVehicleSchAdhSecs: -570.1
+                    previousVehicleSchAdhStr: '-9.5 minutes (early)'
+                    routeId: '13223'
+                    routeName: KJ - Ingleside/Church
+                    routeShortName: KJ
+                    schAdh: 0
+                    schAdhSecs: 0
+                    schAdhStr: 0.0 sec (ontime)
+                    scheduledHeadwaySecs: 180
+                    serviceId: '3'
+                    serviceName: 3 - Sunday
+                    trip: '8187660'
+                    tripPattern: route_KJ_6503_to_7778_3136a791
+                    vehicleType: '0'
+                  - block: '9311'
+                    blockMthd: AVL_FEED_BLOCK_ASSIGNMENT
+                    direction: '1'
+                    headsign: Embarcadero Station
+                    headwaySecs: 1224.5
+                    id: '1433'
+                    loc:
+                      heading: 143.4
+                      lat: 37.72123
+                      lon: -122.44714
+                      source: NextBus
+                      speed: 0
+                      time: 1530759709
+                    nextStopId: '7778'
+                    nextStopName: San Jose Ave & Geneva Ave
+                    previousVehicleId: '1495'
+                    previousVehicleSchAdhSecs: -86
+                    previousVehicleSchAdhStr: '-86.0 sec (early)'
+                    routeId: '13223'
+                    routeName: KJ - Ingleside/Church
+                    routeShortName: KJ
+                    schAdh: -507777
+                    schAdhSecs: -507.7
+                    schAdhStr: '-8.5 minutes (early)'
+                    scheduledHeadwaySecs: 840
+                    serviceId: '3'
+                    serviceName: 3 - Sunday
+                    trip: '8187626'
+                    tripPattern: route_KJ_6503_to_6992_9801534c
+                    vehicleType: '0'
+                  - block: '9313'
+                    blockMthd: AVL_FEED_BLOCK_ASSIGNMENT
+                    direction: '0'
+                    headsign: Balboa Park Station
+                    headwaySecs: 669.2
+                    id: '1510'
+                    loc:
+                      heading: 271.9
+                      lat: 37.72301
+                      lon: -122.452
+                      source: NextBus
+                      speed: 9.4
+                      time: 1530759709
+                    nextStopId: '5784'
+                    nextStopName: Ocean Ave/CCSF Pedestrian Bridge
+                    previousVehicleId: '1463'
+                    previousVehicleSchAdhSecs: 0
+                    previousVehicleSchAdhStr: 0.0 sec (ontime)
+                    routeId: '13223'
+                    routeName: KJ - Ingleside/Church
+                    routeShortName: KJ
+                    schAdh: 332731
+                    schAdhSecs: 332.7
+                    schAdhStr: 5.5 minutes (late)
+                    scheduledHeadwaySecs: 600
+                    serviceId: '3'
+                    serviceName: 3 - Sunday
+                    trip: '8187493'
+                    tripPattern: route_KJ_6992_to_7109_6c7dd48f
+                    vehicleType: '0'
+                  - block: '9306'
+                    blockMthd: AVL_FEED_BLOCK_ASSIGNMENT
+                    direction: '0'
+                    headsign: Balboa Park Station
+                    headwaySecs: 197.7
+                    id: '1488'
+                    loc:
+                      heading: 175.7
+                      lat: 37.74995
+                      lon: -122.42731
+                      source: NextBus
+                      speed: 5.3
+                      time: 1530759697
+                    nextStopId: '4002'
+                    nextStopName: Church St & Clipper St
+                    previousVehicleId: '1438'
+                    previousVehicleSchAdhSecs: 96.1
+                    previousVehicleSchAdhStr: 96.2 sec (late)
+                    routeId: '13223'
+                    routeName: KJ - Ingleside/Church
+                    routeShortName: KJ
+                    schAdh: -305003
+                    schAdhSecs: -305
+                    schAdhStr: '-5.1 minutes (early)'
+                    scheduledHeadwaySecs: 600
+                    serviceId: '3'
+                    serviceName: 3 - Sunday
+                    trip: '8187490'
+                    tripPattern: route_KJ_6992_to_7109_6c7dd48f
+                    vehicleType: '0'
+                  - block: '9309'
+                    blockMthd: AVL_FEED_BLOCK_ASSIGNMENT
+                    direction: '1'
+                    headsign: Embarcadero Station
+                    headwaySecs: 812.1
+                    id: '1521'
+                    loc:
+                      heading: 48.3
+                      lat: 37.73508
+                      lon: -122.42842
+                      source: NextBus
+                      speed: 13.9
+                      time: 1530759725
+                    nextStopId: '6277'
+                    nextStopName: San Jose Ave & Randall St
+                    previousVehicleId: '1495'
+                    previousVehicleSchAdhSecs: -86
+                    previousVehicleSchAdhStr: '-86.0 sec (early)'
+                    routeId: '13223'
+                    routeName: KJ - Ingleside/Church
+                    routeShortName: KJ
+                    schAdh: -26021
+                    schAdhSecs: -26
+                    schAdhStr: '-26.0 sec (early)'
+                    scheduledHeadwaySecs: 780
+                    serviceId: '3'
+                    serviceName: 3 - Sunday
+                    trip: '8187627'
+                    tripPattern: route_KJ_6503_to_6992_9801534c
+                    vehicleType: '0'
+                  - block: '9305'
+                    blockMthd: AVL_FEED_BLOCK_ASSIGNMENT
+                    direction: '1'
+                    headsign: Embarcadero Station
+                    headwaySecs: 780
+                    id: '1463'
+                    layover: true
+                    layoverDepTime: 1530761100
+                    layoverDepTimeStr: '20:25:00'
+                    loc:
+                      heading: 15
+                      lat: 37.73507
+                      lon: -122.4715
+                      source: NextBus
+                      speed: 2.2
+                      time: 1530759684
+                    nextStopId: '6503'
+                    nextStopName: West Portal/Sloat/St Francis Circle
+                    previousVehicleId: '1512'
+                    previousVehicleSchAdhSecs: 0
+                    previousVehicleSchAdhStr: 0.0 sec (ontime)
+                    routeId: '13223'
+                    routeName: KJ - Ingleside/Church
+                    routeShortName: KJ
+                    schAdh: 0
+                    schAdhSecs: 0
+                    schAdhStr: 0.0 sec (ontime)
+                    scheduledHeadwaySecs: 780
+                    serviceId: '3'
+                    serviceName: 3 - Sunday
+                    trip: '8187624'
+                    tripPattern: route_KJ_6503_to_6992_9801534c
+                    vehicleType: '0'
+                  - block: '9302'
+                    blockMthd: AVL_FEED_BLOCK_ASSIGNMENT
+                    direction: '1'
+                    headsign: Embarcadero Station
+                    headwaySecs: 977.6
+                    id: '1519'
+                    loc:
+                      heading: 45.1
+                      lat: 37.7754
+                      lon: -122.41877
+                      source: NextBus
+                      speed: 0
+                      time: 1530759722
+                    nextStopId: '5727'
+                    nextStopName: Metro Civic Center Station/Downtn
+                    previousVehicleId: '1462'
+                    previousVehicleSchAdhSecs: -209.8
+                    previousVehicleSchAdhStr: '-3.5 minutes (early)'
+                    routeId: '13223'
+                    routeName: KJ - Ingleside/Church
+                    routeShortName: KJ
+                    schAdh: 237014
+                    schAdhSecs: 237
+                    schAdhStr: 4.0 minutes (late)
+                    scheduledHeadwaySecs: 780
+                    serviceId: '3'
+                    serviceName: 3 - Sunday
+                    trip: '8187629'
+                    tripPattern: route_KJ_6503_to_6992_9801534c
+                    vehicleType: '0'
+                  - block: '9303'
+                    blockMthd: AVL_FEED_BLOCK_ASSIGNMENT
+                    direction: '0'
+                    headsign: Balboa Park Station
+                    headwaySecs: 916.6
+                    id: '1438'
+                    loc:
+                      heading: 175.7
+                      lat: 37.74243
+                      lon: -122.42662
+                      source: NextBus
+                      speed: 2.2
+                      time: 1530759709
+                    nextStopId: '4004'
+                    nextStopName: Church St & Day St
+                    previousVehicleId: '1550'
+                    previousVehicleSchAdhSecs: 18.1
+                    previousVehicleSchAdhStr: 18.1 sec (late)
+                    routeId: '13223'
+                    routeName: KJ - Ingleside/Church
+                    routeShortName: KJ
+                    schAdh: 109731
+                    schAdhSecs: 109.7
+                    schAdhStr: 109.7 sec (late)
+                    scheduledHeadwaySecs: 600
+                    serviceId: '3'
+                    serviceName: 3 - Sunday
+                    trip: '8187491'
+                    tripPattern: route_KJ_6992_to_7109_6c7dd48f
+                    vehicleType: '0'
+              route: /real-time/sfmta/vehicles GET
+              success: true
+            application/xml: |
+              <reponse>
+                <success>true</success>
+                <route>/real-time/sfmta/vehicles GET</route>
+                <data>
+                  <agencyKey>sfmta</agencyKey>
+                  <vehicles>
+                    <id>5790</id>
+                    <routeId>13392</routeId>
+                    <routeShortName>1</routeShortName>
+                    <headsign>Drumm + Clay</headsign>
+                    <vehicleType>3</vehicleType>
+                    <loc>
+                      <lat>37.79387</lat>
+                      <lon>-122.40981</lon>
+                      <time>1550281916</time>
+                      <speed>0</speed>
+                      <heading>80.8</heading>
+                    </loc>
+                    <directionId>1</directionId>
+                    <tripId />
+                    <blockId />
+                  </vehicles>
+                  <vehicles>
+                    <id>5771</id>
+                    <routeId>13392</routeId>
+                    <routeShortName>1</routeShortName>
+                    <headsign>Geary + 33rd Avenue</headsign>
+                    <vehicleType>3</vehicleType>
+                    <loc>
+                      <lat>37.784</lat>
+                      <lon>-122.48279</lon>
+                      <time>1550281931</time>
+                      <speed>0</speed>
+                      <heading>266.7</heading>
+                    </loc>
+                    <directionId>0</directionId>
+                    <tripId />
+                    <blockId />
+                  </vehicles>
+                </data>
+              </reponse>
+        '400':
+          $ref: '#/responses/400%20-%20Swiftly'
+        '401':
+          $ref: '#/responses/401%20-%20Swiftly'
+        '403':
+          $ref: '#/responses/403%20-%20Swiftly'
+        '429':
+          $ref: '#/responses/429%20-%20Swiftly'
+        '503':
+          $ref: '#/responses/503%20-%20Swiftly'
+      summary: Vehicles
+      security:
+        - Authorization: []
+      parameters:
+        - $ref: '#/parameters/route'
+        - in: query
+          name: unassigned
+          type: string
+          description: 'If true, includes unassigned vehicles as well as assigned vehicles. By default will only include vehicles that are assigned to a route.'
+        - in: query
+          name: verbose
+          type: string
+          description: 'If present, include additional information. '
+        - in: header
+          name: Accept
+          type: string
+          description: Set to `application/xml` for XML format or `application/json` for JSON (default).
+      tags:
+        - Real-time
+      description: |-
+        Fetches real-time information about an agency's vehicles and last-reported locations. If a vehicle is actively serving a route, the route and direction information will also be provided. 
+
+        To get more detailed information about a vehicle, including block assignment, trip assignment, schedule adherence, and current headway, submit the query with query parameter `verbose=true`. A detailed schema and example data are provided below.
+      produces:
+        - application/json
+        - application/xml
+  '/real-time/{agencyKey}/predictions-near-location':
+    parameters:
+      - $ref: '#/parameters/agencyKey'
+    get:
+      responses:
+        '200':
+          description: Success.
+          schema:
+            type: object
+            properties:
+              data:
+                type: object
+                properties:
+                  agencyKey:
+                    $ref: '#/definitions/Common_Oas2_AgencyKey'
+                  predictionsData:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        destinations:
+                          type: array
+                          items:
+                            $ref: '#/definitions/Common_Oas2_Destination-prediction'
+                        distanceToStop:
+                          type: number
+                          description: 'The distance from the query location to the stop in meters. '
+                        routeId:
+                          type: string
+                          description: The route id that these predictions are for. Matches the `route_id` from GTFS. This is an ID that uniquely identifies the route.
+                        routeName:
+                          type: string
+                          description: The route name that these predictions are for. The route name is a combination of the route short name and long name.
+                        routeShortName:
+                          type: string
+                          description: The `route_short_name` from GTFS. This is often a route number or letter that describes the route (i.e. "5R" or "28").
+                        stopCode:
+                          type: integer
+                          description: The stop code that predictions are for. This field matches the `stop_code` field from GTFS. It contains short text or a number that uniquely identifies the stop for passengers. Stop codes are often used in phone-based transit information systems or printed on stop signage to make it easier for riders to get a stop schedule or real-time arrival information for a particular stop.
+                        stopId:
+                          type: string
+                          description: 'The stop id that predictions are for. This field matches the GTFS `stop_id`. It is an ID that uniquely identifies a stop, station, or station entrance. Multiple routes may use the same stop.'
+                        stopName:
+                          type: string
+                          description: 'The name of the stop that predictions are for. This field matches GTFS `stop_name` and contains the name of a stop, station, or station entrance.'
+              route:
+                $ref: '#/definitions/Common_Oas2_Api-route'
+              success:
+                $ref: '#/definitions/Common_Oas2_Success'
+          examples:
+            application/json:
+              data:
+                agencyKey: sfmta
+                predictionsData:
+                  - destinations:
+                      - directionId: '0'
+                        headsign: Castro
+                        predictions:
+                          - min: 2
+                            sec: 134
+                            time: 1534288430
+                            tripId: '8146579'
+                            vehicleId: '1055'
+                          - min: 4
+                            sec: 289
+                            time: 1534288586
+                            tripId: '8146576'
+                            vehicleId: '1079'
+                          - min: 19
+                            sec: 1153
+                            time: 1534289449
+                            tripId: '8146575'
+                            vehicleId: '1062'
+                    distanceToStop: 87.3
+                    routeId: '13222'
+                    routeName: F - Market & Wharves
+                    routeShortName: F
+                    stopCode: 15639
+                    stopId: '5639'
+                    stopName: Market St & 2nd St
+                  - destinations:
+                      - directionId: '0'
+                        headsign: Park Presidio Boulevard
+                        predictions:
+                          - min: 3
+                            sec: 202
+                            time: 1534288498
+                            tripId: '8093632'
+                            vehicleId: '8721'
+                          - min: 19
+                            sec: 1155
+                            time: 1534289451
+                            tripId: '8093679'
+                            vehicleId: '8743'
+                          - min: 34
+                            sec: 2055
+                            time: 1534290351
+                            tripId: '8093678'
+                            vehicleId: '8719'
+                      - directionId: '0'
+                        headsign: California + Presidio Avenue
+                        predictions:
+                          - min: 4
+                            sec: 255
+                            time: 1534288551
+                            tripId: '8093694'
+                            vehicleId: '5715'
+                          - min: 25
+                            sec: 1515
+                            time: 1534289812
+                            tripId: '8093693'
+                            vehicleId: '5614'
+                          - min: 40
+                            sec: 2415
+                            time: 1534290712
+                            tripId: '8093692'
+                            vehicleId: '5547'
+                    distanceToStop: 28.9
+                    routeId: '13162'
+                    routeName: 2 - Sutter/Clement
+                    routeShortName: '2'
+                    stopCode: 16606
+                    stopId: '6606'
+                    stopName: Sutter St & Sansome St
+                  - destinations:
+                      - directionId: '0'
+                        headsign: Presidio + California
+                        predictions:
+                          - departure: true
+                            min: 6
+                            sec: 383
+                            time: 1534288680
+                            tripId: '8093961'
+                            vehicleId: '5515'
+                          - departure: true
+                            min: 23
+                            sec: 1403
+                            time: 1534289700
+                            tripId: '8093960'
+                            vehicleId: '5595'
+                          - min: 40
+                            sec: 2448
+                            time: 1534290744
+                            tripId: '8093959'
+                            vehicleId: '5728'
+                    distanceToStop: 29.5
+                    routeId: '13163'
+                    routeName: 3 - Jackson
+                    routeShortName: '3'
+                    stopCode: 16606
+                    stopId: '6606'
+                    stopName: Sutter St & Sansome St
+                  - destinations:
+                      - directionId: '0'
+                        headsign: Sixth Avenue
+                        predictions:
+                          - min: 2
+                            sec: 159
+                            time: 1534288455
+                            tripId: '8094318'
+                            vehicleId: '8631'
+                          - min: 15
+                            sec: 915
+                            time: 1534289212
+                            tripId: '8094317'
+                            vehicleId: '8637'
+                          - min: 44
+                            sec: 2655
+                            time: 1534290952
+                            tripId: '8094314'
+                            vehicleId: '8827'
+                    distanceToStop: 26.8
+                    routeId: '13164'
+                    routeName: 5 - Fulton
+                    routeShortName: '5'
+                    stopCode: 15689
+                    stopId: '5689'
+                    stopName: Market St & Sansome St
+                  - destinations:
+                      - directionId: '0'
+                        headsign: Ocean Beach
+                        predictions:
+                          - min: 1
+                            sec: 110
+                            time: 1534288406
+                            tripId: '8096823'
+                            vehicleId: '7275'
+                          - delayed: true
+                            min: 11
+                            sec: 705
+                            time: 1534289001
+                            tripId: '8096822'
+                            vehicleId: '7205'
+                          - min: 23
+                            sec: 1395
+                            time: 1534289691
+                            tripId: '8096890'
+                            vehicleId: '7249'
+                    distanceToStop: 26.8
+                    routeId: '13165'
+                    routeName: 5R - Fulton Rapid
+                    routeShortName: 5R
+                    stopCode: 15689
+                    stopId: '5689'
+                    stopName: Market St & Sansome St
+                  - destinations:
+                      - directionId: '0'
+                        headsign: Quintara + 14th Avenue
+                        predictions:
+                          - min: 17
+                            sec: 1046
+                            time: 1534289343
+                            tripId: '8097504'
+                            vehicleId: '5413'
+                          - min: 27
+                            sec: 1646
+                            time: 1534289943
+                            tripId: '8097505'
+                            vehicleId: '5461'
+                          - min: 37
+                            sec: 2246
+                            time: 1534290543
+                            tripId: '8097506'
+                            vehicleId: '5450'
+                    distanceToStop: 87
+                    routeId: '13166'
+                    routeName: 6 - Haight-Parnassus
+                    routeShortName: '6'
+                    stopCode: 15639
+                    stopId: '5639'
+                    stopName: Market St & 2nd St
+                  - destinations:
+                      - directionId: '0'
+                        headsign: Great Highway
+                        predictions:
+                          - min: 11
+                            sec: 691
+                            time: 1534288988
+                            tripId: '8099185'
+                            vehicleId: '8870'
+                          - min: 21
+                            sec: 1291
+                            time: 1534289588
+                            tripId: '8099159'
+                            vehicleId: '8825'
+                    distanceToStop: 86.9
+                    routeId: '13167'
+                    routeName: 7 - Haight-Noriega
+                    routeShortName: '7'
+                    stopCode: 15639
+                    stopId: '5639'
+                    stopName: Market St & 2nd St
+                  - destinations:
+                      - directionId: '0'
+                        headsign: Great Highway
+                        predictions:
+                          - min: 31
+                            sec: 1886
+                            time: 1534290183
+                            tripId: '8100918'
+                            vehicleId: '6539'
+                    distanceToStop: 27.2
+                    routeId: '13168'
+                    routeName: 7X - Noriega Express
+                    routeShortName: 7X
+                    stopCode: 15689
+                    stopId: '5689'
+                    stopName: Market St & Sansome St
+                  - destinations:
+                      - directionId: '0'
+                        headsign: Bayshore Boulevard
+                        predictions:
+                          - min: 8
+                            sec: 509
+                            time: 1534288805
+                            tripId: '8103833'
+                            vehicleId: '8650'
+                          - min: 20
+                            sec: 1229
+                            time: 1534289525
+                            tripId: '8103832'
+                            vehicleId: '8859'
+                    distanceToStop: 87.1
+                    routeId: '13170'
+                    routeName: 9 - San Bruno
+                    routeShortName: '9'
+                    stopCode: 15639
+                    stopId: '5639'
+                    stopName: Market St & 2nd St
+            application/xml: |
+              <reponse>
+                <success>true</success>
+                <route>/real-time/sfmta/predictions-near-location GET</route>
+                <data>
+                  <agencyKey>sfmta</agencyKey>
+                  <predictionsData>
+                    <routeShortName>J</routeShortName>
+                    <routeName>J - Church</routeName>
+                    <routeId>13455</routeId>
+                    <stopId>6216</stopId>
+                    <stopName>Right Of Way/21st St</stopName>
+                    <stopCode>16216</stopCode>
+                    <distanceToStop>82.2</distanceToStop>
+                    <destinations>
+                      <directionId>0</directionId>
+                      <headsign>Balboa Park Station</headsign>
+                      <predictions>
+                        <time>1550281398</time>
+                        <sec>111</sec>
+                        <min>1</min>
+                        <tripId>8339966</tripId>
+                        <vehicleId>1434</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550281995</time>
+                        <sec>709</sec>
+                        <min>11</min>
+                        <tripId>8339965</tripId>
+                        <vehicleId>2054</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282316</time>
+                        <sec>1029</sec>
+                        <min>17</min>
+                        <tripId>8339964</tripId>
+                        <vehicleId>1493</vehicleId>
+                      </predictions>
+                    </destinations>
+                  </predictionsData>
+                  <predictionsData>
+                    <routeShortName>J</routeShortName>
+                    <routeName>J - Church</routeName>
+                    <routeId>13455</routeId>
+                    <stopId>6217</stopId>
+                    <stopName>Right Of Way/21st St</stopName>
+                    <stopCode>16217</stopCode>
+                    <distanceToStop>65.2</distanceToStop>
+                    <destinations>
+                      <directionId>1</directionId>
+                      <headsign>Embarcadero Station</headsign>
+                      <predictions>
+                        <time>1550282261</time>
+                        <sec>975</sec>
+                        <min>16</min>
+                        <tripId>8340074</tripId>
+                        <vehicleId>1522</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282285</time>
+                        <sec>998</sec>
+                        <min>16</min>
+                        <tripId>8340077</tripId>
+                        <vehicleId>2044</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282328</time>
+                        <sec>1042</sec>
+                        <min>17</min>
+                        <tripId>8340075</tripId>
+                        <vehicleId>1454</vehicleId>
+                      </predictions>
+                    </destinations>
+                  </predictionsData>
+                  <predictionsData>
+                    <routeShortName>48</routeShortName>
+                    <routeName>48 - Quintara-24th Street</routeName>
+                    <routeId>13435</routeId>
+                    <stopId>3460</stopId>
+                    <stopName>24th St &amp; Church St</stopName>
+                    <stopCode>13460</stopCode>
+                    <distanceToStop>467.1</distanceToStop>
+                    <destinations>
+                      <directionId>0</directionId>
+                      <headsign>Great Highway</headsign>
+                      <predictions>
+                        <time>1550281622</time>
+                        <sec>336</sec>
+                        <min>5</min>
+                        <tripId>8317127</tripId>
+                        <vehicleId>8901</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550281985</time>
+                        <sec>698</sec>
+                        <min>11</min>
+                        <tripId>8317128</tripId>
+                        <vehicleId>8654</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282827</time>
+                        <sec>1540</sec>
+                        <min>25</min>
+                        <tripId>8317116</tripId>
+                        <vehicleId>8885</vehicleId>
+                      </predictions>
+                    </destinations>
+                  </predictionsData>
+                  <predictionsData>
+                    <routeShortName>48</routeShortName>
+                    <routeName>48 - Quintara-24th Street</routeName>
+                    <routeId>13435</routeId>
+                    <stopId>3467</stopId>
+                    <stopName>24th St &amp; Dolores St</stopName>
+                    <stopCode>13467</stopCode>
+                    <distanceToStop>495</distanceToStop>
+                    <destinations>
+                      <directionId>1</directionId>
+                      <headsign>Third + 20th Streets</headsign>
+                      <predictions>
+                        <time>1550282082</time>
+                        <sec>795</sec>
+                        <min>13</min>
+                        <tripId>8317174</tripId>
+                        <vehicleId>8841</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282527</time>
+                        <sec>1240</sec>
+                        <min>20</min>
+                        <tripId>8317173</tripId>
+                        <vehicleId>8827</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282599</time>
+                        <sec>1313</sec>
+                        <min>21</min>
+                        <tripId>8317176</tripId>
+                        <vehicleId>8433</vehicleId>
+                      </predictions>
+                    </destinations>
+                  </predictionsData>
+                  <predictionsData>
+                    <routeShortName>24</routeShortName>
+                    <routeName>24 - Divisadero</routeName>
+                    <routeId>13414</routeId>
+                    <stopId>4322</stopId>
+                    <stopName>Castro St &amp; 22nd St</stopName>
+                    <stopCode>14322</stopCode>
+                    <distanceToStop>648.6</distanceToStop>
+                    <destinations>
+                      <directionId>0</directionId>
+                      <headsign>Palou + Third Street</headsign>
+                      <predictions>
+                        <time>1550281575</time>
+                        <sec>289</sec>
+                        <min>4</min>
+                        <tripId>8313743</tripId>
+                        <vehicleId>5784</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550282439</time>
+                        <sec>1152</sec>
+                        <min>19</min>
+                        <tripId>8313741</tripId>
+                        <vehicleId>5777</vehicleId>
+                      </predictions>
+                      <predictions>
+                        <time>1550283075</time>
+                        <sec>1789</sec>
+                        <min>29</min>
+                        <tripId>8313740</tripId>
+                        <vehicleId>5578</vehicleId>
+                      </predictions>
+                    </destinations>
+                  </predictionsData>
+                </data>
+              </reponse>
+        '400':
+          $ref: '#/responses/400%20-%20Swiftly'
+        '401':
+          $ref: '#/responses/401%20-%20Swiftly'
+        '403':
+          $ref: '#/responses/403%20-%20Swiftly'
+        '429':
+          $ref: '#/responses/429%20-%20Swiftly'
+        '503':
+          $ref: '#/responses/503%20-%20Swiftly'
+      summary: Predictions near location
+      description: |-
+        Fetches real-time predictions near a specific latitude and longitude.
+
+        The `lat` and `lon` are required query parameters signifying the latitude and longitude to search around. Predictions will be generated for all stops within a specified distance of the query location. The distance is specified by the `meters` query parameter and will default to 1500 meters if the `meters` parameter is missing.
+
+        The `number` designates the number of future predictions to return per route/stop in the response. If not provided defaults to 3. If fewer than `number` predictions are returned in the response, this means that there are fewer than `number` future predictions available for that route and stop combination at this time.
+      tags:
+        - Real-time
+      parameters:
+        - in: query
+          name: lat
+          type: number
+          required: true
+          description: The latitude to search around
+        - in: query
+          name: lon
+          type: number
+          required: true
+          description: The longitude to search around
+        - in: query
+          name: number
+          type: integer
+          description: 'The number of future predictions to return per route/stop in the response. If not provided defaults to 3. If fewer than `number` prediction are returned in the response, this means that there are fewer than `number` future predictions available for that route and stop.'
+        - in: query
+          name: meters
+          type: integer
+          description: 'The radius around the `lat`, `lon` coordinate to search for stops to generate predictions for. Defaults to 1500 meters if this parameter is omitted.'
+        - in: header
+          name: Accept
+          type: string
+          description: Set to `application/xml` for XML format or `application/json` for JSON (default).
+      produces:
+        - application/json
+        - application/xml
+  '/real-time/{agencyKey}/gtfs-rt-alerts/v2':
+    get:
+      responses:
+        '200':
+          description: 'Below find an example of our alerts GTFS-realtime feed, and detailed information on the fields that are returned. As mentioned in the description, results are typically returned in the Google Protocol Buffer binary format, as the GTFS-rt is designed for server-to-server communication. The example below has been converted to an ASCII human-readable format.'
+          schema:
+            $ref: '#/definitions/Common_Oas2_GTFS-rt-alertsFeed'
+          examples:
+            text/plain: |
+              header {
+                gtfs_realtime_version: "2.0"
+                incrementality: FULL_DATASET
+                timestamp: 1595388267
+              }
+              entity {
+                id: "3571a590-5d08-4504-9181-e1b44d86134b"
+                alert {
+                  active_period {
+                    start: 1591858800
+                  }
+                  informed_entity {
+                    route_id: "1"
+                  }
+                  cause: OTHER_CAUSE
+                  effect: MODIFIED_SERVICE
+                  header_text {
+                    translation {
+                      text: "Test"
+                    }
+                  }
+                  description_text {
+                    translation {
+                      text: "Testing"
+                    }
+                  }
+                }
+              }
+              entity {
+                id: "3024f6a9-447f-4237-90be-a8e6f9493831"
+                alert {
+                  active_period {
+                    start: 1589958000
+                  }
+                  informed_entity {
+                    agency_id: "1"
+                  }
+                  cause: WEATHER
+                  effect: SIGNIFICANT_DELAYS
+                  header_text {
+                    translation {
+                      text: "Delays across the network due to weather"
+                    }
+                  }
+                  description_text {
+                    translation {
+                      text: "Test.."
+                    }
+                  }
+                }
+              }
+      summary: GTFS-rt-alerts
+      description: |-
+        The alerts GTFS-realtime data provides information for all active service alerts for a given agency.
+
+        The full GTFS-realtime specification is outlined here: [https://developers.google.com/transit/gtfs-realtime/](https://developers.google.com/transit/gtfs-realtime/). The spec is flexible in that several fields are optional or conditionally required. The tables below will outline the fields that Swiftly provides in our version of the GTFS-realtime alerts feed.
+      tags:
+        - Real-time
+      parameters:
+        - $ref: '#/parameters/agencyKey'
+        - in: query
+          name: format
+          type: string
+          description: The default response format is the Google Protocol Buffer binary format.  The `json` and `human` options allow for more human-friendly responses.
+          enum:
+            - json
+            - human
+    parameters:
+      - in: path
+        type: string
+        required: true
+        description: |
+          The agency key used in the Swiftly dashboard. This is the parameter that follows "dashboard.goswift.ly/" in the Swiftly dashboard url.
+        minLength: 1
+        maxLength: 64
+        name: agencyKey
+  '/real-time/{agencyKey}/gtfs-rt-trip-updates':
+    get:
+      responses:
+        '200':
+          description: 'Below find an example of our trip updates GTFS-realtime feed, and detailed information on the fields that are returned. As mentioned in the description, results are typically returned in the Google Protocol Buffer binary format, as the GTFS-rt is designed for server-to-server communication. However, with the query parameter format=''human'', we can produce an ASCII human-readable version.'
+          schema:
+            $ref: '#/definitions/Common_Oas2_GTFS-rt-tripUpdatesFeed'
+          examples:
+            text/plain: |-
+              ```
+              header {
+                gtfs_realtime_version: "2.0"
+                incrementality: FULL_DATASET
+                timestamp: 1532106736
+              }
+              entity {
+                id: "8159309"
+                trip_update {
+                  trip {
+                    trip_id: "8159309"
+                    start_date: "20180720"
+                    schedule_relationship: SCHEDULED
+                    route_id: "13316"
+                  }
+                  stop_time_update {
+                    stop_sequence: 1
+                    departure {
+                      time: 1532108880
+                    }
+                    stop_id: "5661"
+                    schedule_relationship: SCHEDULED
+                  }
+                  stop_time_update {
+                    stop_sequence: 2
+                    arrival {
+                      time: 1532109051
+                    }
+                    stop_id: "7936"
+                    schedule_relationship: SCHEDULED
+                  }
+                  vehicle {
+                    id: "8192"
+                  }
+                  timestamp: 1532106704
+                }
+              }
+              entity {
+                id: "8159308"
+                trip_update {
+                  trip {
+                    trip_id: "8159308"
+                    start_date: "20180720"
+                    schedule_relationship: SCHEDULED
+                    route_id: "13316"
+                  }
+                  stop_time_update {
+                    stop_sequence: 1
+                    departure {
+                      time: 1532109360
+                    }
+                    stop_id: "5661"
+                    schedule_relationship: SCHEDULED
+                  }
+                  vehicle {
+                    id: "8837"
+                  }
+                  timestamp: 1532106677
+                }
+              }
+              ```
+      tags:
+        - Real-time
+      parameters:
+        - $ref: '#/parameters/agencyKey'
+        - in: query
+          name: format
+          type: string
+          enum:
+            - json
+            - human
+          description: 'The default response format is the Google Protocol Buffer binary format.  For human-readable formats, the `json` and `human` options are available.'
+        - in: query
+          name: version
+          type: string
+          default: '2.0'
+          enum:
+            - 2
+            - '2.0'
+            - 3
+            - '3.0'
+          description: 'Do not use this param.  This param is deprecated and will be removed.  Instead, use `enable-feature`.'
+          x-deprecated: true
+        - in: query
+          name: enable-feature
+          type: string
+          enum:
+            - deleted-trips
+            - duplicated-trips
+            - new-shapes
+          description: |
+            Certain new, experimental, or optional features of the GTFS-realtime specification may be supported by this API endpoint.
+            Consumers may choose to enable those features when calling this endpoint.
+            To enable multiple features, this param can be specified multiple times with different values.
+
+            `deleted-trips` enables the `DELETED` TripUpdate ScheduleRelationship.  
+            When this feature is enabled, certain canceled trips may be marked as `DELETED` to indicate those trips should be omitted from realtime displays rather than displayed as canceled.  
+            When this feature is not enabled, the trips that would be DELETED are instead marked as CANCELED.
+
+            `duplicated-trips` enables the `DUPLICATED` TripUpdate ScheduleRelationship.  
+            When this feature is enabled, all added trips will be marked as `DUPLICATED` to indicate those trips are based on a scheduled service and not an entirely new service.  
+            When this feature is not enabled, added trips are marked as `ADDED`.
+
+            `new-shapes` enables the additional FeedEntity `Shape`, which conveys details about realtime added shapes.
+
+            For full details, consult the GTFS-realtime specification.
+      summary: GTFS-rt-trip-updates
+      description: |
+        The GTFS-realtime calls are designed for server-to-server communication. The trip updates GTFS-realtime data provides predictions for all vehicles, all stops and all routes in the system. Since the GTFS-realtime calls provide data for the entire agency, the returned data can be quite large and not appropriate for individual client requests. **For this reason, requests to GTFS-rt APIs from web browsers are not supported.**
+
+        Typically, after customers make a GTFS-realtime call, the customer will store the results on a local server and these stored results are used to serve the passenger-facing tools.
+        These endpoints are meant to be called about every 10-30 seconds. No ‘Access-Control-Allow-Origin’ header is present for this endpoint, since it is not intended to be used by individual clients.
+
+        The default response format is is Google Protocol Buffer format.  Other formats may be available by specifying the `format` query param; for more details, see the Query Params section.
+
+        If a customer is creating a client web-application and does not want to store results on their own servers, some of our other endpoints are better suited since they can provide limited information targeted to a specific route or stop. The predictions endpoints can be used to get vehicle arrival times for a particular route/stop or location.
+
+        The full GTFS-realtime specification is outlined here: [https://developers.google.com/transit/gtfs-realtime/](https://developers.google.com/transit/gtfs-realtime/). The spec is flexible in that several fields are optional or conditionally required. The tables below will outline the fields that Swiftly provides in our version of the GTFS-realtime trip-updates feed. We also provide a GTFS-realtime vehicle-positions example feed.
+    parameters:
+      - $ref: '#/parameters/agencyKey'
+  '/real-time/{agencyKey}/gtfs-rt-vehicle-positions':
+    get:
+      responses:
+        '200':
+          description: |
+            Below find an example of our vehicle positions GTFS-realtime feed, and detailed information on the fields that are returned. As mentioned in the description, results are typically returned in the Google Protocol Buffer binary format, as the GTFS-rt is designed for server-to-server communication. However, with the query parameter format='human', we can produce an ASCII human-readable version.
+          schema:
+            $ref: '#/definitions/Common_Oas2_GTFS-rt-VehiclePositionsFeed'
+          examples:
+            text/plain: |-
+              header {
+                gtfs_realtime_version: "2.0"
+                incrementality: FULL_DATASET
+                timestamp: 1532107989
+              }
+              entity {
+                id: "1462"
+                vehicle {
+                  position {
+                    latitude: 37.79192
+                    longitude: -122.39087
+                    speed: 0.0
+                  }
+                  timestamp: 1532106044
+                  vehicle {
+                    id: "1462"
+                    label: "1462"
+                  }
+                }
+              }
+              entity {
+                id: "1461"
+                vehicle {
+                  position {
+                    latitude: 37.72196
+                    longitude: -122.44698
+                    speed: 0.0
+                  }
+                  timestamp: 1532107932
+                  vehicle {
+                    id: "1461"
+                    label: "1461"
+                  }
+                }
+              }
+              entity {
+                id: "1460"
+                vehicle {
+                  trip {
+                    trip_id: "8187366"
+                    start_date: "20180720"
+                    route_id: "13228"
+                  }
+                  position {
+                    latitude: 37.77289
+                    longitude: -122.4223
+                    speed: 0.0
+                  }
+                  current_stop_sequence: 2
+                  current_status: STOPPED_AT
+                  timestamp: 1532105999
+                  stop_id: "5240"
+                  vehicle {
+                    id: "1460"
+                    label: "1460"
+                  }
+                }
+              }
+              entity {
+                id: "1459"
+                vehicle {
+                  position {
+                    latitude: 37.72234
+                    longitude: -122.44713
+                    speed: 0.0
+                  }
+                  timestamp: 1532109430
+                  vehicle {
+                    id: "1459"
+                    label: "1459"
+                  }
+                }
+              }
+              entity {
+                id: "1458"
+                vehicle {
+                  position {
+                    latitude: 37.75105
+                    longitude: -122.38565
+                    bearing: 120.0
+                    speed: 1.6666679
+                  }
+                  timestamp: 1532109470
+                  vehicle {
+                    id: "1458"
+                    label: "1458"
+                  }
+                }
+              }
+      summary: GTFS-rt-vehicle-positions
+      description: |
+        The GTFS-realtime calls are designed for server-to-server communication. The vehicle positions GTFS-realtime endpoint provides vehicle positions for all vehicles in the system. Since the GTFS-realtime calls provide data for the entire agency, the returned data can be quite large and not appropriate for individual client requests. **For this reason, requests to GTFS-rt APIs from web browsers are not supported.**
+
+        Typically, after customers make a GTFS-realtime call, the customer will store the results on a local server and these stored results are used to serve the passenger-facing tools.
+        These endpoints are meant to be called about every 10-30 seconds. No ‘Access-Control-Allow-Origin’ header is present for this endpoint, since it is not intended to be used by individual clients.
+
+        The default response format is is Google Protocol Buffer format.  Other formats may be available by specifying the `format` query param; for more details, see the Query Params section.
+
+        If a customer is creating a client web-application and does not want to store results on their own servers, some of our other endpoints are better suited since they can provide limited information targeted to a specific route or stop. The predictions endpoints can be used to get vehicle arrival times for a particular route/stop or location.
+
+        The full GTFS-realtime specification is outlined here: [https://developers.google.com/transit/gtfs-realtime/](https://developers.google.com/transit/gtfs-realtime/). The spec is flexible in that several fields are optional or conditionally required. The tables below will outline the fields that Swiftly provides in our version of the GTFS-realtime vehicle positions feed. We also provide a GTFS-realtime trip updates example feed.
+      tags:
+        - Real-time
+      parameters:
+        - $ref: '#/parameters/agencyKey'
+        - in: query
+          name: format
+          type: string
+          enum:
+            - json
+            - human
+          description: 'The default response format is the Google Protocol Buffer binary format.  For human-readable formats, the `json` and `human` options are available.'
+    parameters:
+      - $ref: '#/parameters/agencyKey'
+  '/real-time/{agencyKey}/active-blocks':
+    parameters:
+      - $ref: '#/parameters/agencyKey'
+    get:
+      responses:
+        '200':
+          description: Success.
+          schema:
+            type: object
+            properties:
+              success:
+                $ref: '#/definitions/Common_Oas2_Success'
+              route:
+                $ref: '#/definitions/Common_Oas2_Api-route'
+              data:
+                type: object
+                properties:
+                  agencyKey:
+                    $ref: '#/definitions/Common_Oas2_AgencyKey'
+                  blocksByRoute:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        shortName:
+                          type: string
+                        name:
+                          type: string
+                        block:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                $ref: '#/definitions/Common_Oas2_BlockId-otp'
+                              serviceId:
+                                $ref: '#/definitions/Common_Oas2_ServiceId-otp'
+                              startTime:
+                                type: string
+                              endTime:
+                                type: string
+                              trip:
+                                type: object
+                                properties:
+                                  id:
+                                    $ref: '#/definitions/Common_Oas2_TripId-otp'
+                                  shortName:
+                                    type: string
+                                  startTime:
+                                    type: string
+                                  endTime:
+                                    type: string
+                                  directionId:
+                                    $ref: '#/definitions/Common_Oas2_DirectionId-otp'
+                                  headsign:
+                                    type: string
+                                  routeId:
+                                    type: string
+                                  routeShortName:
+                                    $ref: '#/definitions/Common_Oas2_Route-short-name'
+                                required:
+                                  - id
+                                  - shortName
+                                  - startTime
+                                  - endTime
+                                  - directionId
+                                  - headsign
+                                  - routeId
+                                  - routeShortName
+                              vehicle:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    id:
+                                      type: string
+                                      description: The unique vehicle ID currently assigned to this block
+                                    scheduleBased:
+                                      type: boolean
+                                      description: 'If `true`, it is currently within the agency-configurable threshold for producing schedule-based predictions before and during the the beginning of the block when a vehicle is not yet assigned, so that riders can still get predictions for first trips.'
+                                    schAdhSecs:
+                                      type: number
+                                      description: The vehicle's schedule adherence in seconds
+                                    schAdh:
+                                      type: integer
+                                      description: The vehicle's schedule adherence in milliseconds
+                                    schAdhStr:
+                                      type: string
+                                      description: A displayable formatted string of the vehicle's current schedule-adherence
+                                  required:
+                                    - id
+                                    - scheduleBased
+                                    - schAdhSecs
+                                    - schAdh
+                                    - schAdhStr
+                            required:
+                              - id
+                              - serviceId
+                              - startTime
+                              - endTime
+                              - vehicle
+                      required:
+                        - id
+                        - shortName
+                        - name
+                        - block
+                required:
+                  - agencyKey
+                  - blocksByRoute
+            required:
+              - success
+              - route
+          examples:
+            application/json:
+              success: true
+              route: /real-time/sfmta/active-blocks GET
+              data:
+                agencyKey: sfmta
+                blocksByRoute:
+                  - id: '13455'
+                    shortName: J
+                    name: J - Church
+                    block:
+                      - id: '9302'
+                        serviceId: '1'
+                        startTime: '03:50:09'
+                        endTime: '23:21:00'
+                        trip:
+                          id: '8340099'
+                          shortName: '8340099'
+                          startTime: '13:41:00'
+                          endTime: '14:17:00'
+                          directionId: '1'
+                          headsign: Embarcadero Station
+                          routeId: '13455'
+                          routeShortName: J
+                        vehicle:
+                          - id: '1409'
+                            scheduleBased: false
+                            schAdhSecs: 421.8
+                            schAdh: 421856
+                            schAdhStr: 7.0 minutes (late)
+                      - id: '9301'
+                        serviceId: '1'
+                        startTime: '04:32:00'
+                        endTime: '20:43:00'
+                        trip:
+                          id: '8340101'
+                          shortName: '8340101'
+                          startTime: '13:21:00'
+                          endTime: '13:57:00'
+                          directionId: '1'
+                          headsign: Embarcadero Station
+                          routeId: '13455'
+                          routeShortName: J
+                        vehicle:
+                          - id: '1460'
+                            scheduleBased: false
+                            schAdhSecs: 1144
+                            schAdh: 1144053
+                            schAdhStr: 19.1 minutes (late)
+                      - id: '9303'
+                        serviceId: '1'
+                        startTime: '05:10:00'
+                        endTime: '18:40:00'
+                        trip:
+                          id: '8339990'
+                          shortName: '8339990'
+                          startTime: '13:19:00'
+                          endTime: '14:00:00'
+                          directionId: '0'
+                          headsign: Balboa Park Station
+                          routeId: '13455'
+                          routeShortName: J
+                        vehicle:
+                          - id: '1489'
+                            scheduleBased: false
+                            schAdhSecs: 2257.8
+                            schAdh: 2257839
+                            schAdhStr: 37.6 minutes (late)
+                      - id: '9307'
+                        serviceId: '1'
+                        startTime: '05:26:09'
+                        endTime: '20:57:00'
+                        trip:
+                          id: '8339991'
+                          shortName: '8339991'
+                          startTime: '13:09:00'
+                          endTime: '13:50:00'
+                          directionId: '0'
+                          headsign: Balboa Park Station
+                          routeId: '13455'
+                          routeShortName: J
+                        vehicle:
+                          - id: '2024'
+                            scheduleBased: false
+                            schAdhSecs: 510
+                            schAdh: 510059
+                            schAdhStr: 8.5 minutes (late)
+                      - id: '9304'
+                        serviceId: '1'
+                        startTime: '05:27:00'
+                        endTime: '24:30:00'
+                        trip:
+                          id: '8339989'
+                          shortName: '8339989'
+                          startTime: '13:29:00'
+                          endTime: '14:10:00'
+                          directionId: '0'
+                          headsign: Balboa Park Station
+                          routeId: '13455'
+                          routeShortName: J
+                        vehicle: []
+                      - id: '9305'
+                        serviceId: '1'
+                        startTime: '05:42:00'
+                        endTime: '24:50:00'
+                        trip:
+                          id: '8339988'
+                          shortName: '8339988'
+                          startTime: '13:39:00'
+                          endTime: '14:20:00'
+                          directionId: '0'
+                          headsign: Balboa Park Station
+                          routeId: '13455'
+                          routeShortName: J
+                        vehicle:
+                          - id: '1519'
+                            scheduleBased: false
+                            schAdhSecs: 1154.4
+                            schAdh: 1154442
+                            schAdhStr: 19.2 minutes (late)
+                      - id: '9306'
+                        serviceId: '1'
+                        startTime: '06:08:00'
+                        endTime: '25:10:00'
+                        trip:
+                          id: '8340100'
+                          shortName: '8340100'
+                          startTime: '13:31:00'
+                          endTime: '14:07:00'
+                          directionId: '1'
+                          headsign: Embarcadero Station
+                          routeId: '13455'
+                          routeShortName: J
+                        vehicle:
+                          - id: '1500'
+                            scheduleBased: false
+                            schAdhSecs: 989.9
+                            schAdh: 989907
+                            schAdhStr: 16.5 minutes (late)
+                      - id: '9309'
+                        serviceId: '1'
+                        startTime: '07:16:00'
+                        endTime: '19:07:00'
+                        trip:
+                          id: '8340102'
+                          shortName: '8340102'
+                          startTime: '13:11:00'
+                          endTime: '13:47:00'
+                          directionId: '1'
+                          headsign: Embarcadero Station
+                          routeId: '13455'
+                          routeShortName: J
+                        vehicle:
+                          - id: '1451'
+                            scheduleBased: false
+                            schAdhSecs: 1438
+                            schAdh: 1438036
+                            schAdhStr: 24.0 minutes (late)
+                      - id: '9310'
+                        serviceId: '1'
+                        startTime: '07:50:00'
+                        endTime: '25:30:00'
+                        trip:
+                          id: '8339992'
+                          shortName: '8339992'
+                          startTime: '12:59:00'
+                          endTime: '13:40:00'
+                          directionId: '0'
+                          headsign: Balboa Park Station
+                          routeId: '13455'
+                          routeShortName: J
+                        vehicle:
+                          - id: '1423'
+                            scheduleBased: false
+                            schAdhSecs: 2910
+                            schAdh: 2910059
+                            schAdhStr: 48.5 minutes (late)
+        '400':
+          $ref: '#/responses/400%20-%20Swiftly'
+        '401':
+          $ref: '#/responses/401%20-%20Swiftly'
+        '403':
+          $ref: '#/responses/403%20-%20Swiftly'
+        '429':
+          $ref: '#/responses/429%20-%20Swiftly'
+        '503':
+          $ref: '#/responses/503%20-%20Swiftly'
+      summary: Active blocks
+      description: |-
+        Fetches all blocks currently active for an agency, in real-time. Each block in the response includes its associated static schedule information (service ID, start time and end time) as well as the currently active trip, current schedule adherence, and vehicle information.
+
+        A block is a series of consecutive trips served by a single vehicle. While a block is active, its vehicle is either on a scheduled trip, or going from the end location of one trip to the start location of its next trip. Between trips, a vehicle does not pick up passengers (also known as non-revenue or dead heading).
+      tags:
+        - Real-time
+        - Internal
+      security:
+        - Authorization: []
+      parameters:
+        - $ref: '#/parameters/agencyKey'
+      produces:
+        - application/json
+  '/operations/{agencyKey}/assign-vehicles':
+    post:
+      responses:
+        '200':
+          description: ''
+          schema:
+            type: object
+            properties: {}
+      description: "In the body of this POST request, include a JSON-formatted string describing a list of objects. Each object must contain a `vehicleId` representing the vehicle to be assigned, and a `blockId` representing the block to assign it to. Optionally, the object may also include a `driverId` to indicate who is driving the vehicle.\n\nThe API will return a JSON-formatted output with a list of objects describing the result of each assignment attempt. Each object will include `vehicleId`, `blockId`, `driverId` (if included in the original request), `success` (a boolean indicating whether the assignment was successful), and `reason` (a string describing the reason for the success or failure of the assignment).\n\nExample input:\n```\n[\n\t{\n\t\tvehicleId: \"1234\",\n\t\tblockId: \"5678\",\n\t\tdriverId: \"9999\"\n\t},\n\t{\n\t\tvehicleId: \"2222\",\n\t\tblockId: \"3333\",\n\t\tdriverId: \"4444\"\n\t}\n]\n```\n\nExample output:\n```\n{\n  \"results\": [\n    {\n      \"vehicleId\": \"2048\",\n      \"success\": false,\n      \"reason\": \"blockId is NULL\"\n    },\n    {\n      \"vehicleId\": \"2048\",\n      \"blockId\": \"9302\",\n      \"success\": true,\n      \"reason\": \"Vehicle was already on that assignment\"\n    }\n  ]\n}\n```"
+      summary: Assign vehicles
+      tags:
+        - Operations
+    parameters:
+      - name: agencyKey
+        in: path
+        type: string
+        required: true
+securityDefinitions:
+  Authorization:
+    type: apiKey
+    name: Authorization
+    in: header
+schemes:
+  - https
+security:
+  - Authorization: []
+parameters:
+  agencyKey:
+    in: path
+    type: string
+    required: true
+    description: |
+      The agency key used in the Swiftly dashboard. This is the parameter that follows "dashboard.goswift.ly/" in the Swiftly dashboard url.
+    minLength: 1
+    maxLength: 64
+    name: agencyKey
+  route:
+    name: route
+    in: query
+    type: string
+    description: |-
+      The route to return results for (as a string). If not included, includes data for all routes. Can also be comma separated list of route keys. For example `route=1,2,5`
+
+      Note that this query parameter refers to the `route_short_name` from GTFS. Route short name is the primary route identifier in the Swiftly system. When an API call includes `route` as a path or query parameter, the route short name should be used.
+tags:
+  - name: Agency Info
+  - name: Real-time
+  - name: Operations
+produces:
+  - application/json
+  - application/json; charset=utf-8
+host: api.goswift.ly
+definitions:
+  Common_Oas2_Error Swiftly:
+    type: object
+    title: Error Swiftly
+    required:
+      - errorMessage
+      - errorCode
+    properties:
+      errorMessage:
+        type: string
+      errorCode:
+        type: integer
+  Common_Oas2_GTFS-rt-TripProperties:
+    type: object
+    description: |-
+      Defines updated properties of the trip. Only provided when v3 is requested and `schedule_relationship=DUPLICATED`
+
+      **Caution:** this message is still **experimental**, and subject to change. It may be formally adopted in the future.
+    properties:
+      trip_id:
+        type: string
+        description: |-
+          Defines the identifier of a new trip that is a duplicate of an existing trip defined in (CSV) GTFS trips.txt but will start at a different service date and/or time (defined using `TripProperties.start_date` and `TripProperties.start_time`). See definition of `trips.trip_id` in (CSV) GTFS. Its value must be different than the ones used in the (CSV) GTFS. This field is required if schedule_relationship is `DUPLICATED`, otherwise this field must not be populated and will be ignored by consumers.
+
+          **Caution:** this field is still **experimental**, and subject to change. It may be formally adopted in the future.
+      start_date:
+        type: string
+        description: |-
+          Service date on which the duplicated trip will be run. Must be provided in YYYYMMDD format. This field is required if `schedule_relationship` is `DUPLICATED`, otherwise this field must not be populated and will be ignored by consumers.
+
+          **Caution:** this field is still **experimental**, and subject to change. It may be formally adopted in the future.
+      start_time:
+        type: string
+        description: |-
+          Defines the departure start time of the trip when it’s duplicated. See definition of `stop_times.departure_time` in (CSV) GTFS. Scheduled arrival and departure times for the duplicated trip are calculated based on the offset between the original trip `departure_time` and this field. For example, if a GTFS trip has stop A with a `departure_time` of 10:00:00 and stop B with `departure_time` of 10:01:00, and this field is populated with the value of 10:30:00, stop B on the duplicated trip will have a scheduled departure_time of 10:31:00. Real-time prediction delay values are applied to this calculated schedule time to determine the predicted time. For example, if a departure delay of 30 is provided for stop B, then the predicted departure time is 10:31:30. Real-time prediction time values do not have any offset applied to them and indicate the predicted time as provided. For example, if a departure time representing 10:31:30 is provided for stop B, then the predicted departure time is 10:31:30.This field is required if schedule_relationship is `DUPLICATED`, otherwise this field must not be populated and will be ignored by consumers.
+
+          **Caution:** this field is still **experimental**, and subject to change. It may be formally adopted in the future.
+  Common_Oas2_GTFS-rt-VehiclePosition:
+    type: object
+    title: GTFS-rt-VehiclePosition
+    required:
+      - trip
+      - vehicle
+      - position
+      - current_stop_sequence
+      - stop_id
+      - current_status
+      - timestamp
+    properties:
+      trip:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-tripDescriptor'
+      vehicle:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-vehicleDescriptor'
+      position:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-positions'
+      current_stop_sequence:
+        type: integer
+        description: The stop sequence index of the current stop.  This matches the `stop_sequence` for this stop from the stop_times.txt GTFS file. The meaning of current stop is determined by the `current_status` field.
+      stop_id:
+        type: string
+        description: Identifies the current stop. The value matches the `stop_id` from the stops.txt GTFS file.
+      current_status:
+        type: string
+        description: |-
+          The current vehicle status can be one of the following:
+          | Value         | Meaning  |
+          |---------------|----------|
+          | INCOMING_AT   | The vehicle is just about to arrive at the stop. |
+          | STOPPED_AT    | The vehicle is standing at the stop. |
+          | IN_TRANSIT_TO | The vehicle has departed the previous stop and is in transit. |
+      timestamp:
+        type: string
+        description: 'Moment at which the vehicle''s position was measured in epoch time (i.e., number of seconds since January 1st 1970 00:00:00 UTC)'
+  Common_Oas2_GTFS-rt-VehiclePositionsFeed:
+    type: object
+    title: GTFS-rt-VehiclePositionsFeed
+    required:
+      - header
+      - entities
+    properties:
+      header:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-feedHeader'
+      entities:
+        type: object
+        required:
+          - id
+          - vehicle
+        properties:
+          id:
+            type: string
+            description: Feed-unique identifier for this entity.
+          vehicle:
+            $ref: '#/definitions/Common_Oas2_GTFS-rt-VehiclePosition'
+  Common_Oas2_GTFS-rt-alert:
+    type: object
+    title: GTFS-rt-alert
+    properties:
+      active_period:
+        type: array
+        items:
+          $ref: '#/definitions/Common_Oas2_GTFS-rt-timeRange'
+      informed_entity:
+        type: array
+        items:
+          $ref: '#/definitions/Common_Oas2_GTFS-rt-entitySelector'
+      cause:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-cause'
+      effect:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-effect'
+      header_text:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-headerText'
+      description_text:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-descriptionText'
+      url:
+        type: string
+        description: The URL which provides additional information about the alert.
+    required:
+      - active_period
+      - informed_entity
+      - cause
+      - effect
+      - header_text
+      - description_text
+    description: 'An alert, indicating some sort of incident in the public transit network.'
+  Common_Oas2_GTFS-rt-alertsFeed:
+    type: object
+    title: GTFS-rt-alertsFeed
+    properties:
+      header:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-feedHeader'
+      entities:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Feed-unique identifier for this entity.
+            alert:
+              $ref: '#/definitions/Common_Oas2_GTFS-rt-alert'
+  Common_Oas2_GTFS-rt-cause:
+    title: GTFS-rt-cause
+    description: Cause of an alert.
+    type: string
+    enum:
+      - UNKNOWN_CAUSE
+      - OTHER_CAUSE
+      - TECHNICAL_PROBLEM
+      - STRIKE
+      - DEMONSTRATION
+      - ACCIDENT
+      - HOLIDAY
+      - WEATHER
+      - MAINTENANCE
+      - CONSTRUCTION
+      - POLICE_ACITIVY
+      - MEDICAL_EMERGENCY
+  Common_Oas2_GTFS-rt-descriptionText:
+    title: GTFS-rt-DescriptionText
+    description: Description for the alert. This plain-text string will be formatted as the body of the alert (or shown on an explicit "expand" request by the user). The information in the description should add to the information of the header.
+    type: array
+    items:
+      $ref: '#/definitions/Common_Oas2_GTFS-rt-translation'
+  Common_Oas2_GTFS-rt-effect:
+    type: string
+    description: The effect of this problem on the affected entity.
+    title: GTFS-rt-effect
+    enum:
+      - NO_SERVICE
+      - REDUCED_SERVICE
+      - SIGNIFICANT_DELAYS
+      - DETOUR
+      - ADDITIONAL_SERVICE
+      - MODIFIED_SERVICE
+      - OTHER_EFFECT
+      - UNKNOWN_EFFECT
+      - STOP_MOVED
+  Common_Oas2_GTFS-rt-entitySelector:
+    type: object
+    description: 'A selector for an entity in a GTFS feed. The values of the fields should correspond to the appropriate fields in the GTFS feed. At least one specifier must be given - all fields in an EntitySelector cannot be empty. If several are given, then the matching has to apply to all the given specifiers.'
+    title: GTFS-rt-entitySelector
+    properties:
+      agency_id:
+        type: string
+      route_id:
+        type: string
+      stop_id:
+        type: string
+  Common_Oas2_GTFS-rt-feedHeader:
+    type: object
+    required:
+      - gtfs_realtime_version
+      - incrementality
+      - timestamp
+    properties:
+      gtfs_realtime_version:
+        type: string
+        description: Version of the feed specification. The current version is 2.0.
+      incrementality:
+        type: string
+        description: The value should always be "FULL_DATASET" meaning this feed update will overwrite all preceding realtime information for the feed. Thus this update is expected to provide a full snapshot of all known realtime information.
+      timestamp:
+        type: integer
+        description: 'The timestamp identifies the moment when the content of this feed has been created. Time is in epoch time  (i.e., number of seconds since January 1st 1970 00:00:00 UTC)'
+  Common_Oas2_GTFS-rt-headerText:
+    title: GTFS-rt-headerText
+    description: 'Header for the alert. This plain-text string will be highlighted, for example in boldface.'
+    type: array
+    items:
+      $ref: '#/definitions/Common_Oas2_GTFS-rt-translation'
+  Common_Oas2_GTFS-rt-positions:
+    type: object
+    title: GTFS-rt-positions
+    description: Current position of the vehicle
+    required:
+      - latitude
+      - longitude
+    properties:
+      latitude:
+        type: number
+        description: Vehicle position - degrees latitude.
+      longitude:
+        type: number
+        description: Vehicle position - degrees longitude.
+      bearing:
+        type: integer
+        description: 'Vehicle bearing, in degrees, clockwise from True North, i.e., 0 is North and 90 is East.'
+      speed:
+        type: integer
+        description: Vehicle speed measured in meters per second.
+  Common_Oas2_GTFS-rt-stopTimeUpdate:
+    type: object
+    title: GTFS-rt-stopTimeUpdate
+    description: 'Updates to StopTimes for the trip (both future, i.e., predictions, and in some cases, past ones, i.e., those that already happened). '
+    properties:
+      stop_sequence:
+        type: integer
+        description: The GTFS-stop sequence. Matches the stop_sequence for this trip and stop from the _stop_times.txt_ GTFS file.
+      departure:
+        type: object
+        title: GTFS-rt-stopTimeEvent
+        properties:
+          time:
+            type: integer
+            description: 'Predicted event time as an epoch timestamp (i.e., number of seconds since January 1st 1970 00:00:00 UTC).'
+          uncertainty:
+            type: integer
+            description: |-
+              The GTFS-realtime specification allows for the use of an uncertainty field, but does not clearly specify how to use. Swiftly has defined a few uncertainty codes as follows:
+              | Value           | Meaning    |
+              |-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+              | <300 or omitted | Valid real-time prediction   |
+              | 300             | Real-time prediction not available. This code is primarily used when a vehicle has not yet been assigned to the trip, (i.e. because the block has not started yet). It is a schedule-based prediction, but Swiftly adjusts the schedule-based prediction time using observed historical travel times to make predictions more accurate than the schedule. |
+              | 301             | Valid real-time prediction, though the bus appears to be stalled or significantly delayed and predictions are not as accurate     |
+              | > 301           | Likely invalid prediction, recommend not showing anything (and not showing scheduled time), very rare situation.                                    |
+      stop_id:
+        type: string
+        description: The GTFS-stop sequence. Matches the stop_id from the _stops.txt_ GTFS file.
+      schedule_relationship:
+        type: string
+        description: |-
+          The relation between this StopTime and the static schedule.
+
+          | Value       | Meaning |
+          |-------------|---------------|
+          | **SCHEDULED** | The vehicle is proceeding in accordance with its static schedule of stops, although not necessarily according to the times of the schedule. |
+          | **SKIPPED** | The stop is skipped, i.e., the vehicle will not stop at this stop, such as due to a stop closure or detour.   |
+      arrival:
+        type: object
+        title: GTFS-rt-stopTimeEvent
+        properties:
+          time:
+            type: integer
+            description: 'Predicted event time as an epoch timestamp (i.e., number of seconds since January 1st 1970 00:00:00 UTC).'
+          uncertainty:
+            type: integer
+            description: |-
+              The GTFS-realtime specification allows for the use of an uncertainty field, but does not clearly specify how to use. Swiftly has defined a few uncertainty codes as follows:
+              | Value           | Meaning    |
+              |-----------------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+              | <300 or omitted | Valid real-time prediction   |
+              | 300             | Real-time prediction not available. This code is primarily used when a vehicle has not yet been assigned to the trip, (i.e. because the block has not started yet). It is a schedule-based prediction, but Swiftly adjusts the schedule-based prediction time using observed historical travel times to make predictions more accurate than the schedule. |
+              | 301             | Valid real-time prediction, though the bus appears to be stalled or significantly delayed and predictions are not as accurate     |
+              | > 301           | Likely invalid prediction, recommend not showing anything (and not showing scheduled time), very rare situation.                                    |
+    required:
+      - stop_sequence
+      - stop_id
+      - schedule_relationship
+  Common_Oas2_GTFS-rt-timeRange:
+    type: object
+    title: GTFS-rt-timeRange
+    description: A time interval. The interval is considered active at time t if t is greater than or equal to the start time and less than the end time.
+    properties:
+      start:
+        type: integer
+        description: 'Start time, in POSIX time (i.e., number of seconds since January 1st 1970 00:00:00 UTC). If missing, the interval starts at minus infinity. If a TimeRange is provided, either start or end must be provided - both fields cannot be empty.'
+      end:
+        description: 'End time, in POSIX time (i.e., number of seconds since January 1st 1970 00:00:00 UTC). If missing, the interval ends at plus infinity. If a TimeRange is provided, either start or end must be provided - both fields cannot be empty.'
+        type: integer
+  Common_Oas2_GTFS-rt-translation:
+    title: GTFS-rt-translation
+    type: object
+    properties:
+      translation:
+        type: array
+        description: 'An internationalized message containing per-language versions of a snippet of text or a URL. One of the strings from a message will be picked up. The resolution proceeds as follows: If the UI language matches the language code of a translation, the first matching translation is picked. If a default UI language (e.g., English) matches the language code of a translation, the first matching translation is picked. If some translation has an unspecified language code, that translation is picked.'
+        items:
+          type: object
+          properties:
+            text:
+              type: string
+              description: A UTF-8 string containing the message.
+            language:
+              type: string
+              description: 'BCP-47 language code. Can be omitted if the language is unknown or if no internationalization is done at all for the feed. At most one translation is allowed to have an unspecified language tag - if there is more than one translation, the language must be provided.'
+          required:
+            - text
+    required:
+      - translation
+  Common_Oas2_GTFS-rt-tripDescriptor:
+    type: object
+    title: GTFS-rt-tripDescriptor
+    properties:
+      trip_id:
+        type: string
+        description: The `trip_id` from the GTFS feed that this selector refers to.
+      route_id:
+        type: string
+        description: 'The `route_id` from the GTFS that this selector refers to. '
+      start_date:
+        type: string
+        description: The start date of this trip instance in `YYYYMMDD` format.
+      schedule_relationship:
+        type: string
+        description: |-
+          The relation between this trip and the static schedule.
+
+
+          | Value       | Meaning |
+          |-------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+          | SCHEDULED   | Trip that is running in accordance with its GTFS schedule, or is close enough to the scheduled trip to be associated with it |
+          | ADDED       | An extra trip that was added in addition to a running schedule, for example, to replace a broken vehicle or to respond to sudden passenger load. When version 3 is requested, then `DUPLICATED` will be used instead (see below). |
+          | UNSCHEDULED | A trip that is running with no schedule associated to it - this value is used to identify trips defined in GTFS frequencies.txt with exact_times = 0. It should not be used to describe trips not defined in GTFS frequencies.txt, or trips in GTFS frequencies.txt with exact_times = 1. |
+          | CANCELED    | A trip that existed in the schedule but was removed. |
+          | DUPLICATED | A new trip that is the same as an existing scheduled trip except for service start date and time. Used with `TripUpdate.TripProperties.trip_id`, `TripUpdate.TripProperties.start_date`, and `TripUpdate.TripProperties.start_time` to copy an existing trip from static GTFS but start at a different service date and/or time. The trip to be duplicated is identified via TripUpdate.TripDescriptor.trip_id. |
+    required:
+      - trip_id
+    description: The Trip that this message applies to.
+  Common_Oas2_GTFS-rt-tripUpdate:
+    type: object
+    title: GTFS-rt-tripUpdate
+    properties:
+      trip:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-tripDescriptor'
+      stop_time_updates:
+        type: array
+        items:
+          $ref: '#/definitions/Common_Oas2_GTFS-rt-stopTimeUpdate'
+      vehicle:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-vehicleDescriptor'
+      timestamp:
+        type: integer
+        description: 'The timestamp of the last vehicle location from the vehicle on this trip as an epoch timestamp (i.e. number of seconds since January 1st 1970 00:00:00 utc)'
+      trip_properties:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-TripProperties'
+    required:
+      - trip
+      - stop_time_updates
+    description: Realtime update on the progress of a vehicle along a trip.
+  Common_Oas2_GTFS-rt-tripUpdatesFeed:
+    type: object
+    title: GTFS-rt-tripUpdatesFeed
+    properties:
+      header:
+        $ref: '#/definitions/Common_Oas2_GTFS-rt-feedHeader'
+      entities:
+        type: array
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Feed-unique identifier for this entity.
+            tripUpdate:
+              $ref: '#/definitions/Common_Oas2_GTFS-rt-tripUpdate'
+  Common_Oas2_GTFS-rt-vehicleDescriptor:
+    type: object
+    title: GTFS-rt-vehicleDescriptor
+    properties:
+      id:
+        type: string
+        description: The unique vehicle id
+      label:
+        type: string
+        description: 'User visible label, i.e., something that must be shown to the passenger to help identify the correct vehicle.'
+  Common_Oas2_AgencyKey:
+    type: string
+    title: agencyKey
+    description: The agency key used in the Swiftly dashboard. This is the parameter that follows "dashboard.goswift.ly/" in the Swiftly dashboard url.
+  Common_Oas2_Api-route:
+    type: string
+    title: api-route
+    description: The api-route or URL pattern that the user entered.
+  Common_Oas2_BlockId-otp:
+    type: string
+    description: The GTFS `block_id` for this trip. A block consists of a single trip or many sequential trips made using the same vehicle.
+    title: blockId
+  Common_Oas2_Destination-prediction:
+    type: object
+    description: There can be multiple trip patterns for a given route and direction. As a traveler you may need to know the buses terminal stop to know if it will serve your stop. There are predictions for each terminal destination that serves this route.
+    title: destination-prediction
+    properties:
+      directionId:
+        type: string
+        description: The direction of travel that predictions are being made for.
+      headsign:
+        type: string
+        description: The headsign of the vehicle. This represents the terminal stop for this destination
+      predictions:
+        type: array
+        items:
+          $ref: '#/definitions/Common_Oas2_Prediction'
+    required:
+      - directionId
+      - headsign
+      - predictions
+  Common_Oas2_DirectionId-otp:
+    type: string
+    title: directionId
+    description: The direction id for this data ("1" or "0") matching the GTFS `direction_id` for this trip.
+  Common_Oas2_Prediction:
+    type: object
+    description: 'Information on the vehicles predicted departure from a given stop including: departure time, trip id, and vehicle info'
+    properties:
+      min:
+        type: integer
+        description: Minutes until the vehicle's predicted departure time. The value will be truncated to zero decimal places.
+        example: 1
+      sec:
+        type: integer
+        example: 111
+        description: Seconds until the vehicle's predicted departure time
+      time:
+        type: integer
+        example: 1530757424
+        description: 'Predicted vehicle departure time as an epoch timestamp (i.e. number of seconds since January 1st 1970 00:00:00 utc)'
+      tripId:
+        type: string
+        description: The trip id corresponding to this predicted arrival or departure.
+      vehicleId:
+        type: string
+        description: The vehicle id corresponding to this predicted arrival or departure.
+      departure:
+        type: boolean
+        description: if field is present and `true` then the prediction is a predicted departure time rather than arrival time. If field is missing or `false` then the prediction is the predicted arrival time.
+    required:
+      - min
+      - sec
+      - time
+      - tripId
+      - vehicleId
+  Common_Oas2_Realtime-vehicles:
+    type: array
+    items:
+      type: object
+      properties:
+        direction:
+          type: string
+          description: The vehicle direction ("1" or "0") matching the GTFS direction_id for the trip the vehicle is currently serving.
+        headsign:
+          type: string
+          description: The vehicle headsign
+        id:
+          type: string
+          description: The unique vehicle id
+        loc:
+          type: object
+          description: Vehicle location information
+          required:
+            - lat
+            - lon
+            - time
+          properties:
+            heading:
+              type: number
+              description: 'Vehicle heading, in degrees, clockwise from True North, i.e., 0 is North and 90 is East.'
+            lat:
+              type: number
+              description: Vehicle position - degrees latitude.
+            lon:
+              type: number
+              description: Vehicle position - degrees longitude.
+            speed:
+              type: number
+              description: Vehicle speed measured in meters per second.
+            time:
+              type: integer
+              description: 'Moment at which the vehicle''s position was measured in epoch time (i.e., number of seconds since January 1st 1970 00:00:00 UTC)'
+        routeId:
+          type: string
+          description: 'The route_id from the GTFS of the route that the vehicle is currently serving. '
+        routeShortName:
+          type: string
+          description: 'The route_short_name from GTFS of the route that the vehicle is currently serving. '
+        vehicleType:
+          type: string
+          description: |-
+            A code for the vehicle type or route type. It matches the route_type from GTFS. The possible values and associated types are as follows
+            | type | Description   |
+            |------|---------------|
+            | 0    | Tram, Streetcar, Light rail. Any light rail or street level system within a metropolitan area.  |
+            | 1    | Subway, Metro. Any underground rail system within a metropolitan area.  |
+            | 2    | Rail. Used for intercity or long-distance travel.  |
+            | 3    | Bus. Used for short- and long-distance bus routes.  |
+            | 4    | Ferry. Used for short- and long-distance boat service.  |
+            | 5    | Cable car. Used for street-level cable cars where the cable runs beneath the car.  |
+            | 6    | Gondola, Suspended cable car. Typically used for aerial cable cars where the car is suspended from the cable. |
+            | 7    | Funicular. Any rail system designed for steep inclines.   |
+        block:
+          type: string
+          description: The block that the vehicle is currently assigned to. This field is only included if `verbose=true`.
+        blockAssignmentInfo:
+          type: string
+          description: A human readable description of how the vehicle was assigned or unassigned. This field is only included if `verbose=true`.
+        headwaySecs:
+          type: number
+          description: The time-spacing (in seconds) between the preceding vehicle and this vehicle. This field is only included if `verbose=true`.
+        nextStopId:
+          type: string
+          description: The stop id of the next stop that the vehicle will be arriving at. This field is only available if `verbose=true`
+        nextStopName:
+          type: string
+          description: The stop name of the next stop that the vehicle will be arriving at. This field is only available if `verbose=true`
+        previousVehicleId:
+          type: string
+          description: The vehicle id of the preceding vehicle on this route. This field is only available if `verbose=true`
+        previousVehicleSchAdhSecs:
+          type: number
+          description: The schedule adherence of the preceding vehicle on this route (in seconds). This field is only available if `verbose=true`
+        previousVehicleSchAdhStr:
+          type: string
+          description: A string formatted version of previousVehicleSchAdhSecs. This field is only available if `verbose=true`
+        routeName:
+          type: string
+          description: The route name (a combination of the route short name and route long name). This field is only included if `verbose=true`. The routeShortName is included even when `verbose=false`.
+        schAdhSecs:
+          type: number
+          description: The vehicle's schedule adherence in seconds. This field is only available if `verbose=true`
+        schAdhStr:
+          type: string
+          description: A string formatted version of schAdhSecs. This field is only available if `verbose=true`
+        scheduledHeadwaySecs:
+          type: number
+          description: The scheduled time-spacing between this vehicle and the preceding vehicle on this route. This field is only available if `verbose=true`
+        serviceId:
+          type: string
+          description: The service id of the trip that the vehicle is currently serving. This matches the `service_id` field in the trips.txt GTFS file. This field is only available if `verbose=true`
+        ServiceName:
+          type: string
+          description: 'The service name of the trip that the vehicle is currently serving. The service name includes the `service_id` field, plus some other information on when this service id is active. This field is only available if `verbose=true`'
+        trip:
+          type: string
+          description: The trip id of the trip that the vehicle is currently serving. This field is only available if `verbose=true`
+      required:
+        - id
+        - loc
+        - vehicleType
+    title: vehicles
+  Common_Oas2_Route:
+    type: object
+    title: route-info
+    properties:
+      id:
+        type: string
+        description: Matches the `route_id` from GTFS. This is an ID that uniquely identifies the route.
+      name:
+        $ref: '#/definitions/Common_Oas2_Route-name'
+      shortName:
+        $ref: '#/definitions/Common_Oas2_Route-short-name'
+      longName:
+        $ref: '#/definitions/Common_Oas2_Route-long-name'
+      type:
+        $ref: '#/definitions/Common_Oas2_Route-type'
+      directions:
+        type: array
+        description: Contains information about the stops on the route grouped by direction. Only included if `verbose = true`
+        items:
+          type: object
+          properties:
+            id:
+              type: string
+              description: Direction id ("0" or "1") matching GTFS `direction_id`. The id is a binary value that indicates the direction of travel for a trip.
+            title:
+              type: string
+              description: A direction title to associate with the direction. This field usually included the route terminal stop for this direction (i.e. "To Geary + 33rd Avenue").
+            stops:
+              type: array
+              description: A list of stops associated with this route and direction.
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: 'Matches the GTFS `stop_id`. It is an ID that uniquely identifies a stop, station, or station entrance. Multiple routes may use the same stop.'
+                  lat:
+                    type: number
+                    description: 'The latitude of a stop, station, or station entrance.'
+                  lon:
+                    type: number
+                    description: 'The longitude of a stop, station, or station entrance.'
+                  name:
+                    type: string
+                    description: 'Matches the GTFS `stop_name`. This field contains the name of a stop, station, or station entrance.'
+                  code:
+                    type: integer
+                    description: Matches the `stop_code` field from GTFS. It contains short text or a number that uniquely identifies the stop for passengers. Stop codes are often used in phone-based transit information systems or printed on stop signage to make it easier for riders to get a stop schedule or real-time arrival information for a particular stop.
+                required:
+                  - id
+                  - lat
+                  - lon
+                  - name
+                  - code
+            headsigns:
+              type: array
+              description: 'A list of headsigns for trips associated with this route and direction. Trips traveling in the same route and direction may have different terminal stops so one route, direction combination may have multiple headsigns.'
+              items:
+                type: string
+          required:
+            - id
+            - title
+            - stops
+            - headsigns
+      shapes:
+        type: array
+        description: The shapes associated with this route (as specified in the GTFS shapes.txt file).
+        items:
+          type: object
+          properties:
+            tripPatternId:
+              type: string
+            shapeId:
+              type: string
+              description: Matches the GTFS `shape_id`. The field contains an ID that uniquely identifies a shape.
+            directionId:
+              type: string
+              description: Direction id (0 or 1) matching GTFS `direction_id`. This specifies the direction of travel on this particular shape.
+            headsign:
+              type: string
+              description: The headsign (usually terminal stop) for this particular shape.
+            locs:
+              type: array
+              description: 'An array of (lat,lon) coordinates that define the shape (polyline) geometry.'
+              items:
+                type: object
+                properties:
+                  lat:
+                    type: number
+                    description: The latititude of the polyline coordinate.
+                  lon:
+                    type: number
+                    description: The degrees longitude of the polyline coordinate.
+          required:
+            - tripPatternId
+            - shapeId
+            - directionId
+            - headsign
+            - locs
+      extent:
+        type: object
+        description: The minimum and maximum latitude and longitude coordinates of a bounding box that contains the route.
+        properties:
+          minLat:
+            type: number
+            description: Minimum latitude of the bounding box that encompasses the route shape.
+          minLon:
+            type: number
+            description: Minimum longitude of the bounding box that encompasses the route shape.
+          maxLat:
+            type: number
+            description: Maximum latitude of the bounding box that encompasses the route shape.
+          maxLon:
+            type: number
+            description: Maximum longitude of the bounding box that encompasses the route shape.
+        required:
+          - minLat
+          - minLon
+          - maxLat
+          - maxLon
+    required:
+      - id
+      - name
+      - shortName
+      - longName
+      - type
+  Common_Oas2_Route-long-name:
+    type: string
+    title: route-long-name
+    description: The `route_long_name` from GTFS. This name is generally more descriptive than the route short name and will often include the route's destination.
+  Common_Oas2_Route-name:
+    type: string
+    title: route-name
+    description: A combination of the route short name and long name from GTFS to capture the full route name.
+  Common_Oas2_Route-short-name:
+    type: string
+    title: route-short-name
+    description: The `route_short_name` from GTFS. This is often a route number or letter that describes the route (i.e. "5R" or "28").
+  Common_Oas2_Route-type:
+    type: string
+    title: route-type
+    description: |-
+      The `route_type` from GTFS. The possible values and associated types are as follows
+      | route_type | Description   |
+      |------------|---------------|
+      | 0          | Tram, Streetcar, Light rail. Any light rail or street level system within a metropolitan area. |
+      | 1          | Subway, Metro. Any underground rail system within a metropolitan area. |
+      | 2          | Rail. Used for intercity or long-distance travel. |
+  Common_Oas2_ServiceId-otp:
+    type: string
+    title: serviceId
+    description: The GTFS `service_id` for this trip.  The service id is an ID that uniquely identifies a set of dates when service is available for one or more routes.
+  Common_Oas2_Success:
+    type: boolean
+    description: '`true` if the API call was successful. '
+  Common_Oas2_TripId-otp:
+    type: string
+    description: The trip id. This will match the GTFS `trip_id` field.
+    title: tripId
+responses:
+  400 - Swiftly:
+    description: Query submitted with invalid parameters.
+    schema:
+      $ref: '#/definitions/Common_Oas2_Error%20Swiftly'
+    examples:
+      application/json:
+        errorCode: 400
+        errorMessage: Bad request. (Error messages will vary)
+  401 - Swiftly:
+    description: The request is missing an authorization header.
+    schema:
+      $ref: '#/definitions/Common_Oas2_Error%20Swiftly'
+    examples:
+      application/json:
+        errorCode: 401
+        errorMessage: Missing Authorization Header
+  403 - Swiftly:
+    description: The included API key does not have access to this module and/or this agency.
+    schema:
+      $ref: '#/definitions/Common_Oas2_Error%20Swiftly'
+    examples:
+      application/json:
+        errorCode: 403
+        errorMessage: Permission Denied
+  429 - Swiftly:
+    description: The query limits have been exceeded for this API key.
+    schema:
+      $ref: '#/definitions/Common_Oas2_Error%20Swiftly'
+    examples:
+      application/json:
+        errorCode: 429
+        errorMessage: Rate Limited
+  503 - Swiftly:
+    schema:
+      $ref: '#/definitions/Common_Oas2_Error%20Swiftly'
+    examples:
+      application/json:
+        errorCode: 503
+        errorMessage: Unexpected Server Error
+    description: Unexpected error.
