@@ -76,7 +76,15 @@ function groupByTime(list: Arrival[]): TimeGroup[] {
     }
     g.sailings.push({ kind: a.kind, vehicle: a.vehicle, stop: a.stop });
   }
-  return [...byTime.values()];
+  // Arrivals before departures, so a shared-time group always reads the same
+  // regardless of the order the feed happened to list them in.
+  const groups = [...byTime.values()];
+  for (const g of groups) {
+    g.sailings.sort((a, b) =>
+      a.kind === b.kind ? 0 : a.kind === "arrival" ? -1 : 1,
+    );
+  }
+  return groups;
 }
 
 function clockTime(epochMs: number, timeZone: string): string {
