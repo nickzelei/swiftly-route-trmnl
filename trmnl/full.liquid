@@ -1,56 +1,39 @@
 {% comment %}
-  TRMNL "Full" layout (800x480) for the SF Bay Ferry plugin.
-  Data comes from the Cloudflare Worker; see trmnl/README.md for the shape.
+  TRMNL "Full" layout (800x480). Renders the JSON the Cloudflare Worker
+  returns; see trmnl/README.md for the shape. Each route direction is a column.
 {% endcomment %}
 
 <div class="layout">
+  {% if sections.size > 0 %}
   <div class="columns">
+    {% for sec in sections limit: 2 %}
+      <div class="column">
+        <span class="title">{{ sec.title }}</span>
 
-    <div class="column">
-      <span class="title">Ferry Building</span>
-      <span class="description">To &amp; from Alameda Seaplane</span>
-
-      {% if ferry_building.size > 0 %}
-        {% for g in ferry_building limit: 4 %}
-          <div class="item">
-            <div class="content">
-              <span class="value value--large value--tnums">{{ g.time }}</span>
-              {% for s in g.sailings %}
-                <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}</span>
-              {% endfor %}
+        {% if sec.groups.size > 0 %}
+          {% for g in sec.groups limit: 4 %}
+            <div class="item">
+              <div class="content">
+                <span class="value value--large value--tnums">{{ g.time }}</span>
+                {% for s in g.sailings %}
+                  <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}</span>
+                {% endfor %}
+              </div>
             </div>
-          </div>
-        {% endfor %}
-      {% else %}
-        <span class="label">No upcoming sailings</span>
-      {% endif %}
-    </div>
-
-    <div class="column">
-      <span class="title">Seaplane Lagoon</span>
-      <span class="description">To &amp; from San Francisco</span>
-
-      {% if seaplane.size > 0 %}
-        {% for g in seaplane limit: 4 %}
-          <div class="item">
-            <div class="content">
-              <span class="value value--large value--tnums">{{ g.time }}</span>
-              {% for s in g.sailings %}
-                <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}</span>
-              {% endfor %}
-            </div>
-          </div>
-        {% endfor %}
-      {% else %}
-        <span class="label">No upcoming sailings</span>
-      {% endif %}
-    </div>
-
+          {% endfor %}
+        {% else %}
+          <span class="label">No upcoming sailings</span>
+        {% endif %}
+      </div>
+    {% endfor %}
   </div>
+  {% else %}
+    <span class="label">{{ error | default: "Set the plugin's agency and route." }}</span>
+  {% endif %}
 </div>
 
 <div class="title_bar">
   <img class="image" src="https://usetrmnl.com/images/plugins/private_plugin.svg" />
-  <span class="title">SF Bay Ferry</span>
+  <span class="title">{{ route_name | default: "Ferry" }}</span>
   <span class="instance">Updated {{ updated_at }}</span>
 </div>

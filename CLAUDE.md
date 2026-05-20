@@ -4,9 +4,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A TRMNL e-ink plugin that displays SF Bay Ferry arrival times for the Alameda
-Seaplane route (Swiftly route id `19417`), which runs between Seaplane Lagoon
-and the SF Ferry Building. Data originates from the Swiftly transit API.
+A TRMNL e-ink plugin that displays transit arrival times for any Swiftly
+agency + route. The agency and route id are TRMNL plugin inputs; the Swiftly
+API key is a Worker secret (the plugin is single-tenant — whoever uses the
+recipe self-hosts the Worker). It was built for SF Bay Ferry's Alameda Seaplane
+route (agency `sfbay-ferry`, route id `19417`), still the default smoketest
+target. Data originates from the Swiftly transit API.
 
 ## Architecture
 
@@ -21,18 +24,21 @@ explore/ = throwaway tooling used to discover route/stop ids
 the raw JSON; it does no filtering or transformation. The Swiftly
 `gtfs-rt-trip-updates` feed is agency-wide and large, and Swiftly forbids
 client-side requests to it. The Worker sits between: it fetches the feed,
-filters to one route + a fixed set of stops, and returns a small sculpted JSON
-payload TRMNL can render directly.
+filters to one route, and returns a small sculpted JSON payload TRMNL can
+render directly.
 
 - **`worker/`** — the Cloudflare Worker (TypeScript). `src/index.ts` is the
-  whole proxy: fetch feed → filter by `ROUTE_ID` and the `STOPS` map → compute
-  minutes-until → return JSON. The `STOPS` map (stop id → terminal + label) is
-  the single source of truth for which stops appear; edit it to change coverage.
-  The handler tolerates both camelCase and snake_case feed keys via `pick()`.
+  whole proxy. Per request it reads `agency`/`route` query params and uses the
+  `SWIFTLY_API_KEY` secret, then makes three Swiftly calls: agency info (for the
+  timezone), verbose route info (for the route's directions + stop names), and
+  the trip-updates feed. It buckets sailings by the trip's `directionId` and
+  returns one `section` per route direction. The handler tolerates
+  camelCase/snake_case feed keys via `pick()`.
 - **`trmnl/`** — Liquid templates, one per TRMNL layout (`full`,
-  `half_horizontal`). The Worker's top-level JSON keys (`updated_at`,
-  `ferry_building`, `seaplane`) become Liquid variables directly. Templates
-  only iterate; sorting and capping happen in the Worker.
+  `half_horizontal`, `half_vertical`, `quadrant`). The Worker's top-level JSON
+  keys (`route_name`, `updated_at`, `sections`) become Liquid variables
+  directly; templates iterate `sections`. Sorting and capping happen in the
+  Worker.
 - **`explore/`** — Python scripts (uv) for poking the Swiftly API.
   `swiftly.py` is the shared client; the rest are standalone. Already served
   their purpose (finding stop ids), but `trip_updates.py` /
@@ -64,14 +70,15 @@ Node/npm come from `mise` — see the Toolchain section above.
 
 - `npm install` — install deps (first time)
 - `npm run typecheck` — `tsc`, no emit
-- `SWIFTLY_API_KEY=... node _smoketest.ts` — run the handler against the live
-  API with no wrangler (Node 24 strips TS types natively)
+- `SWIFTLY_API_KEY=... node _smoketest.ts [agency] [route]` — run the handler
+  against the live API with no wrangler (Node 24 strips TS types natively);
+  defaults to `sfbay-ferry 19417`
 - `npm run dev` — local wrangler server on `localhost:8787`
 - `npm run deploy` — deploy to Cloudflare
 
-Secrets are set via `wrangler secret put SWIFTLY_API_KEY` (and optional
-`PROXY_SECRET`) — never in `wrangler.toml`. Plain config (`AGENCY_KEY`,
-`ROUTE_ID`, `TIMEZONE`) lives in `wrangler.toml` `[vars]`.
+Secrets are set via `wrangler secret put` — never in `wrangler.toml`:
+`SWIFTLY_API_KEY` (required) and `PROXY_SECRET` (optional). `wrangler.toml` has
+no `[vars]`.
 
 ### explore/ (run from `explore/`)
 
@@ -84,10 +91,11 @@ Credentials come from `explore/.env` (`SWIFTLY_API_KEY`, `AGENCY_KEY`).
 
 ## Key facts
 
-- The SF Ferry Building is **not a route** — it is a set of stops (gates E/F/G:
-  `72011`, `72013`, `72012`). Seaplane Lagoon is stop `7207`. All four are stops
-  on route `19417`.
+- The Worker groups sailings by the route's **direction** (from verbose route
+  info), not by stop — so multi-gate terminals (e.g. the SF Ferry Building's
+  gates E/F/G) and multi-stop routes need no special handling.
 - Swiftly endpoints all support `format=json`; the code never parses protobuf.
 - Swiftly auth is an `Authorization: <api-key>` header (raw key, no scheme).
-- Swiftly responses are edge-cached 25s in the Worker, so frequent polling is
-  harmless.
+  Keys are account-scoped to specific agencies.
+- Swiftly responses are edge-cached in the Worker — agency/route info 1 h, the
+  live trip-updates feed 25 s — so frequent polling is harmless.

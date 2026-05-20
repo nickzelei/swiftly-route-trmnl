@@ -1,9 +1,8 @@
-name = "sfbayferry-trmnl"
+name = "swiftly-trmnl"
 main = "src/index.ts"
 compatibility_date = "2026-05-19"
 
-# AGENCY_KEY is public; the API key is a secret (see README).
-[vars]
-AGENCY_KEY = "sfbay-ferry"
-ROUTE_ID = "19417"
-TIMEZONE = "America/Los_Angeles"
+# No [vars]: agency and route are per-request TRMNL inputs (see README).
+# Secrets are set via `wrangler secret put` — never here:
+#   SWIFTLY_API_KEY  - required; the Swiftly API key
+#   PROXY_SECRET     - optional shared-secret gate
