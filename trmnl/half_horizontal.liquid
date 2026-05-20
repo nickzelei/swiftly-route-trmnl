@@ -1,0 +1,48 @@
+{% comment %}
+  TRMNL "Half Horizontal" layout (800x240) for the SF Bay Ferry plugin.
+  Shows just the next arrival for each terminal.
+{% endcomment %}
+
+<div class="layout">
+  <div class="columns">
+
+    <div class="column">
+      <span class="title">Ferry Building</span>
+      {% if ferry_building.size > 0 %}
+        {% assign next = ferry_building.first %}
+        <div class="item">
+          <div class="content">
+            <span class="value value--xxlarge value--tnums">{{ next.mins }}</span>
+            <span class="label label--small label--underline">min</span>
+            <span class="label label--small">{{ next.time }} &middot; {{ next.vehicle }}</span>
+          </div>
+        </div>
+      {% else %}
+        <span class="label">No upcoming arrivals</span>
+      {% endif %}
+    </div>
+
+    <div class="column">
+      <span class="title">Seaplane Lagoon</span>
+      {% if seaplane.size > 0 %}
+        {% assign next = seaplane.first %}
+        <div class="item">
+          <div class="content">
+            <span class="value value--xxlarge value--tnums">{{ next.mins }}</span>
+            <span class="label label--small label--underline">min</span>
+            <span class="label label--small">{{ next.time }} &middot; {{ next.vehicle }}</span>
+          </div>
+        </div>
+      {% else %}
+        <span class="label">No upcoming arrivals</span>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<div class="title_bar">
+  <img class="image" src="https://usetrmnl.com/images/plugins/private_plugin.svg" />
+  <span class="title">SF Bay Ferry</span>
+  <span class="instance">Updated {{ updated_at }}</span>
+</div>

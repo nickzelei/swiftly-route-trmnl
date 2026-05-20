@@ -1,0 +1,9 @@
+name = "sfbayferry-trmnl"
+main = "src/index.ts"
+compatibility_date = "2026-05-19"
+
+# AGENCY_KEY is public; the API key is a secret (see README).
+[vars]
+AGENCY_KEY = "sfbay-ferry"
+ROUTE_ID = "19417"
+TIMEZONE = "America/Los_Angeles"

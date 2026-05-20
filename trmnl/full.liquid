@@ -1,0 +1,54 @@
+{% comment %}
+  TRMNL "Full" layout (800x480) for the SF Bay Ferry plugin.
+  Data comes from the Cloudflare Worker; see trmnl/README.md for the shape.
+{% endcomment %}
+
+<div class="layout">
+  <div class="columns">
+
+    <div class="column">
+      <span class="title">Ferry Building</span>
+      <span class="description">Arrivals from Alameda</span>
+
+      {% if ferry_building.size > 0 %}
+        {% for a in ferry_building limit: 4 %}
+          <div class="item">
+            <div class="content">
+              <span class="value value--xlarge value--tnums">{{ a.mins }}</span>
+              <span class="label label--small label--underline">min</span>
+              <span class="label label--small">{{ a.time }} &middot; {{ a.vehicle }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <span class="label">No upcoming arrivals</span>
+      {% endif %}
+    </div>
+
+    <div class="column">
+      <span class="title">Seaplane Lagoon</span>
+      <span class="description">Arrivals from San Francisco</span>
+
+      {% if seaplane.size > 0 %}
+        {% for a in seaplane limit: 4 %}
+          <div class="item">
+            <div class="content">
+              <span class="value value--xlarge value--tnums">{{ a.mins }}</span>
+              <span class="label label--small label--underline">min</span>
+              <span class="label label--small">{{ a.time }} &middot; {{ a.vehicle }}</span>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <span class="label">No upcoming arrivals</span>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<div class="title_bar">
+  <img class="image" src="https://usetrmnl.com/images/plugins/private_plugin.svg" />
+  <span class="title">SF Bay Ferry</span>
+  <span class="instance">Updated {{ updated_at }}</span>
+</div>
