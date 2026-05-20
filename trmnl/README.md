@@ -9,9 +9,12 @@ Markup for the SF Bay Ferry plugin's e-ink display. Built on the
 |---|---|---|
 | `full.liquid` | Full (800x480) | Up to 4 sailing times per terminal |
 | `half_horizontal.liquid` | Half Horizontal (800x240) | Next sailing time per terminal |
+| `half_vertical.liquid` | Half Vertical (400x480) | Up to 3 sailing times per terminal, stacked |
+| `quadrant.liquid` | Quadrant (400x240) | Next sailing time per terminal, stacked |
 
-For Half Vertical / Quadrant, copy `half_horizontal.liquid` and trim — the
-data and class names are identical.
+The two 800-wide layouts arrange the terminals as side-by-side `columns`; the
+two 400-wide layouts stack them top/bottom as `rows`. `quadrant.liquid`
+abbreviates the sailing kind to `DEP`/`ARR` to fit the tight space.
 
 ## Data shape
 

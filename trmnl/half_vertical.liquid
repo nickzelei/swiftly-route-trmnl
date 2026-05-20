@@ -1,0 +1,52 @@
+{% comment %}
+  TRMNL "Half Vertical" layout (400x480) for the SF Bay Ferry plugin.
+  Terminals stacked top/bottom; each shows up to 3 sailing time groups.
+{% endcomment %}
+
+<div class="layout">
+  <div class="rows">
+
+    <div class="row">
+      <span class="title">Ferry Building</span>
+      {% if ferry_building.size > 0 %}
+        {% for g in ferry_building limit: 3 %}
+          <div class="item">
+            <div class="content">
+              <span class="value value--large value--tnums">{{ g.time }}</span>
+              {% for s in g.sailings %}
+                <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <span class="label">No upcoming sailings</span>
+      {% endif %}
+    </div>
+
+    <div class="row">
+      <span class="title">Seaplane Lagoon</span>
+      {% if seaplane.size > 0 %}
+        {% for g in seaplane limit: 3 %}
+          <div class="item">
+            <div class="content">
+              <span class="value value--large value--tnums">{{ g.time }}</span>
+              {% for s in g.sailings %}
+                <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}</span>
+              {% endfor %}
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <span class="label">No upcoming sailings</span>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<div class="title_bar">
+  <img class="image" src="https://usetrmnl.com/images/plugins/private_plugin.svg" />
+  <span class="title">SF Bay Ferry</span>
+  <span class="instance">Updated {{ updated_at }}</span>
+</div>
