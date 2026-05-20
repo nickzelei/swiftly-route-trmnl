@@ -1,0 +1,70 @@
+# trmnlp dev-server config — not uploaded to TRMNL.
+# {{ env.VARIABLE }} interpolation is available in this file only.
+---
+# Live-reload when these change.
+watch:
+  - .trmnlp.yml
+  - src
+
+# Dev values for the plugin's custom fields (defined in src/settings.yml).
+custom_fields:
+  agency: sfbay-ferry
+  route: 19417
+  api_key: "{{ env.PROXY_SECRET }}"
+
+# Static preview payload — mirrors the JSON the Cloudflare Worker returns, so
+# previews render offline with no Swiftly API key. The top-level keys become
+# Liquid variables directly (TRMNL's Polling strategy; see README.md).
+#
+# To preview against LIVE data instead: comment out this `variables:` block and
+# either (a) leave src/settings.yml's polling_url pointed at the deployed
+# Worker, or (b) start the Worker locally (`cd worker && npm run dev`) and set
+# polling_url to `http://localhost:8787?agency=sfbay-ferry&route=19417`.
+variables:
+  agency: sfbay-ferry
+  route_id: "19417"
+  route_name: Alameda Seaplane
+  updated_at: 3:23 PM
+  sections:
+    - title: To Alameda Seaplane Lagoon
+      direction_id: "0"
+      groups:
+        - time: 3:35 PM
+          mins: 12
+          sailings:
+            - kind: departure
+              vehicle: Delphinus
+              stop: San Francisco Ferry Building Gate F
+        - time: 3:47 PM
+          mins: 24
+          sailings:
+            - kind: arrival
+              vehicle: Delphinus
+              stop: Alameda Seaplane Lagoon Ferry Terminal
+    - title: To San Francisco Ferry Building Gate F
+      direction_id: "1"
+      groups:
+        - time: 3:35 PM
+          mins: 11
+          sailings:
+            - kind: departure
+              vehicle: Carina
+              stop: Alameda Seaplane Lagoon Ferry Terminal
+        - time: 3:51 PM
+          mins: 28
+          sailings:
+            - kind: arrival
+              vehicle: Carina
+              stop: San Francisco Ferry Building Gate E
+            - kind: departure
+              vehicle: Carina
+              stop: San Francisco Ferry Building Gate E
+        - time: 4:00 PM
+          mins: 37
+          sailings:
+            - kind: departure
+              vehicle: Delphinus
+              stop: Alameda Seaplane Lagoon Ferry Terminal
+
+  # The trmnl.* namespace (device + user context).
+  trmnl: {}

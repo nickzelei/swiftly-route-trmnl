@@ -1,3 +1,16 @@
 [tools]
 node = "lts"
 uv = "latest"
+ruby = "3.4"
+
+# trmnlp (the TRMNL plugin dev server) ships as the trmnl_preview gem. mise's
+# `gem:` backend mis-resolves its dependency tree, so install it via a hook
+# instead — `--conservative` makes this a fast no-op once it's present, so a
+# single `mise install` still bootstraps the whole repo.
+[hooks]
+postinstall = "gem install --conservative trmnl_preview"
+
+# Hooks are gated behind mise's experimental flag; enable it project-locally
+# so contributors don't have to flip a global setting.
+[settings]
+experimental = true

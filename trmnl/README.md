@@ -1,16 +1,23 @@
-# TRMNL Liquid templates
+# TRMNL plugin
 
 Markup for the ferry plugin's e-ink display. Built on the
 [TRMNL framework](https://usetrmnl.com/framework) classes.
+
+This directory is a [trmnlp](https://github.com/usetrmnl/trmnlp) plugin
+project — `trmnlp` is a self-hosted dev server that renders the Liquid
+templates locally with the real TRMNL Design System and can deploy them to
+TRMNL.
 
 ## Files
 
 | File | TRMNL layout | Shows |
 |---|---|---|
-| `full.liquid` | Full (800x480) | Up to 4 sailing times per direction |
-| `half_horizontal.liquid` | Half Horizontal (800x240) | Next sailing time per direction |
-| `half_vertical.liquid` | Half Vertical (400x480) | Up to 3 sailing times per direction, stacked |
-| `quadrant.liquid` | Quadrant (400x240) | Next sailing time per direction, stacked |
+| `src/full.liquid` | Full (800x480) | Up to 4 sailing times per direction |
+| `src/half_horizontal.liquid` | Half Horizontal (800x240) | Next sailing time per direction |
+| `src/half_vertical.liquid` | Half Vertical (400x480) | Up to 3 sailing times per direction, stacked |
+| `src/quadrant.liquid` | Quadrant (400x240) | Next sailing time per direction, stacked |
+| `src/settings.yml` | — | Plugin config (strategy, polling URL, form fields) |
+| `.trmnlp.yml` | — | Dev-server config + static preview data (not uploaded) |
 
 The two 800-wide layouts arrange the directions as side-by-side `columns`; the
 two 400-wide layouts stack them top/bottom as `rows`. `quadrant.liquid`
@@ -58,13 +65,43 @@ When `sections` is empty (the Worker returns `error` for a missing/invalid
 input), the templates render that message instead. The title bar shows
 `route_name`.
 
-## Installing
+## Developing
 
-1. In the TRMNL plugin's **Markup** editor, pick the layout tab (Full, Half
-   Horizontal, ...).
-2. Paste the matching `.liquid` file's contents.
-3. Use the editor's live preview to check spacing — e-ink rendering differs
-   from a browser, and framework classes may need small tweaks.
+`trmnlp` is installed by `mise install` at the repo root (see the root README
+and CLAUDE.md). Run all commands below from this `trmnl/` directory.
+
+- `trmnlp serve` — dev server with live reload at <http://localhost:4567>.
+  Edit any `src/*.liquid` file and the preview updates.
+- `trmnlp build` — render all four layouts to static HTML in `_build/`.
+- `trmnlp push` — deploy `src/` (templates + `settings.yml`) to TRMNL.
+
+e-ink rendering differs from a browser, and framework classes may need small
+tweaks — `trmnlp` renders with the real TRMNL Design System so the preview is
+faithful.
+
+### Preview data
+
+By default the preview uses the static sample payload in `.trmnlp.yml`'s
+`variables:` block — no Swiftly API key needed, works offline. (`trmnlp`
+still attempts the live poll and may print a harmless `401` until you set
+`PROXY_SECRET`; the static `variables:` override is what actually renders.)
+
+To preview against **live** data, comment out the `variables:` block in
+`.trmnlp.yml` and either:
+- leave `src/settings.yml`'s `polling_url` pointed at the deployed Worker
+  (set `PROXY_SECRET` in your environment so the proxy auth header resolves), or
+- run the Worker locally (`cd ../worker && npm run dev`) and set `polling_url`
+  to `http://localhost:8787?agency=sfbay-ferry&route=19417`.
+
+## Deploying
+
+`trmnlp push` uploads `src/` to a TRMNL private plugin. It needs:
+- an `id:` in `src/settings.yml` (the plugin's id — run `trmnlp pull` once to
+  populate it, or copy it from the plugin's dashboard URL), and
+- authentication: either `trmnlp login` once, or a `TRMNL_API_KEY` env var.
+
+On merge to `main`, `.github/workflows/trmnl.yml` runs `trmnlp push`
+automatically — set the `TRMNL_API_KEY` repo secret to enable it.
 
 The sailing lists are already sorted soonest-first by the Worker, and capped
 with `limit:` in the template, so no sorting is needed here.

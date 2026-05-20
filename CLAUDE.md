@@ -34,30 +34,39 @@ render directly.
   the trip-updates feed. It buckets sailings by the trip's `directionId` and
   returns one `section` per route direction. The handler tolerates
   camelCase/snake_case feed keys via `pick()`.
-- **`trmnl/`** — Liquid templates, one per TRMNL layout (`full`,
-  `half_horizontal`, `half_vertical`, `quadrant`). The Worker's top-level JSON
-  keys (`route_name`, `updated_at`, `sections`) become Liquid variables
-  directly; templates iterate `sections`. Sorting and capping happen in the
-  Worker.
+- **`trmnl/`** — a [trmnlp](https://github.com/usetrmnl/trmnlp) plugin
+  project. `src/` holds one Liquid template per TRMNL layout (`full`,
+  `half_horizontal`, `half_vertical`, `quadrant`) plus `settings.yml` (plugin
+  config — polling URL, form fields); `.trmnlp.yml` is the dev-server config
+  and carries a static sample payload for offline preview. The Worker's
+  top-level JSON keys (`route_name`, `updated_at`, `sections`) become Liquid
+  variables directly; templates iterate `sections`. Sorting and capping happen
+  in the Worker. `trmnlp serve` renders the templates locally; `trmnlp push`
+  deploys `src/` to TRMNL.
 - **`explore/`** — Python scripts (uv) for poking the Swiftly API.
   `swiftly.py` is the shared client; the rest are standalone. Already served
   their purpose (finding stop ids), but `trip_updates.py` /
   `vehicle_positions.py` remain useful for debugging the live feed.
 
-The two runtimes are independent: `explore/` is Python via `uv`, `worker/` is
-Node via `npm`. There is no shared build. `mise` provides both `uv` and Node,
-so a single `mise install` bootstraps the whole repo.
+The three runtimes are independent: `explore/` is Python via `uv`, `worker/`
+is Node via `npm`, `trmnl/` is Ruby via the `trmnl_preview` gem. There is no
+shared build. `mise` provides `uv`, Node, and Ruby, so a single `mise install`
+bootstraps the whole repo.
 
 ## Toolchain: mise
 
 **`mise` is the version/tool manager for the whole repo** — it provides Node
-(npm, npx, wrangler, tsc) for `worker/` and `uv` for `explore/`. Neither is
-assumed to be on the system PATH; both are pinned in `mise.toml` at the repo
-root. Do not install Node or uv globally or via another manager; use mise.
+(npm, npx, wrangler, tsc) for `worker/`, `uv` for `explore/`, and Ruby for
+`trmnl/`. None are assumed to be on the system PATH; all are pinned in
+`mise.toml` at the repo root. Do not install Node, uv, or Ruby globally or via
+another manager; use mise.
 
 - First time / after cloning: `mise install` at the repo root (run `mise trust`
-  if prompted about the untrusted config).
-- If mise is activated in the shell, `node`/`npm`/`npx`/`uv` resolve
+  if prompted about the untrusted config). A `postinstall` hook also installs
+  the `trmnl_preview` gem (which provides the `trmnlp` command) — mise's `gem:`
+  backend mis-resolves its dependencies, hence the hook. Hooks need
+  `experimental = true`, set project-locally in `mise.toml`.
+- If mise is activated in the shell, `node`/`npm`/`npx`/`uv`/`trmnlp` resolve
   automatically anywhere in the repo.
 - If it is not activated, prefix every command with `mise exec -- `
   (e.g. `mise exec -- npm run typecheck`, `mise exec -- uv run trip_updates.py`).
@@ -88,6 +97,21 @@ Credentials come from `explore/.env` (`SWIFTLY_API_KEY`, `AGENCY_KEY`).
 - `uv run explore_routes.py [--route ID]` — list routes, or dump a route's stops
 - `uv run trip_updates.py [--route ID] [--stops a,b,c]` — upcoming arrivals
 - `uv run vehicle_positions.py [--route ID]` — live vehicle positions
+
+### trmnl/ (run from `trmnl/`)
+
+`trmnlp` comes from `mise` — see the Toolchain section above.
+
+- `trmnlp serve` — dev server with live reload at `localhost:4567`
+- `trmnlp build` — render all layouts to static HTML in `_build/` (also the
+  CI check — trmnlp 0.7.x has no `lint`)
+- `trmnlp push` — deploy `src/` to TRMNL; needs an `id:` in `src/settings.yml`
+  and auth (`trmnlp login` once, or `TRMNL_API_KEY`)
+- `trmnlp pull` — overwrite `src/settings.yml` from the server
+
+Preview uses the static sample in `.trmnlp.yml`'s `variables:` block by
+default; comment it out to poll live data. `.github/workflows/trmnl.yml`
+builds on every PR and pushes to TRMNL on merge to `main`.
 
 ## Key facts
 
