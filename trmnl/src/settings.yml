@@ -6,11 +6,16 @@ static_data: ''
 polling_verb: get
 framework_version: latest
 serverless_language: ''
-polling_url: https://swiftly-trmnl.zelei.workers.dev?agency={{ agency }}&route={{ route }}
+polling_url: "{{ base_url }}?agency={{ agency }}&route={{ route }}"
 polling_headers: Authorization=Bearer {{ api_key }}
 polling_body: ''
 id: 310138
 custom_fields:
+- keyname: api_url
+  field_type: string
+  name: Proxy API Url
+  description: The API base url used to hit the proxy server that returns the expected Swiftly response.
+  placeholder: https://example.com
 - keyname: agency
   field_type: string
   placeholder: sfbay-ferry
