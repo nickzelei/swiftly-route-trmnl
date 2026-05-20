@@ -36,10 +36,17 @@ You get a URL like `https://sfbayferry-trmnl.<subdomain>.workers.dev`.
 Set the plugin Strategy to **Polling** and the Polling URL to:
 
 ```
-https://sfbayferry-trmnl.<subdomain>.workers.dev/?key=<PROXY_SECRET>
+https://sfbayferry-trmnl.<subdomain>.workers.dev/
 ```
 
-(Omit `?key=` if you didn't set `PROXY_SECRET`.)
+If you set `PROXY_SECRET`, add a polling **header** (TRMNL supports custom
+headers on GET):
+
+```
+Authorization: Bearer <PROXY_SECRET>
+```
+
+(Omit the header if you didn't set `PROXY_SECRET`.)
 
 ## Response shape
 

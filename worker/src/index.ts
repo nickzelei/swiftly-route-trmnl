@@ -9,7 +9,7 @@
  *   AGENCY_KEY, ROUTE_ID, TIMEZONE   - plain vars
  *   SWIFTLY_API_KEY                  - secret (wrangler secret put)
  *   PROXY_SECRET                     - optional secret; if set, callers must
- *                                      pass ?key=<PROXY_SECRET>
+ *                                      send `Authorization: Bearer <PROXY_SECRET>`
  */
 
 interface Env {
@@ -61,12 +61,15 @@ function clockTime(epochMs: number, timeZone: string): string {
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
-    const url = new URL(request.url);
     const tz = env.TIMEZONE || "America/Los_Angeles";
 
-    // Optional shared-secret gate.
-    if (env.PROXY_SECRET && url.searchParams.get("key") !== env.PROXY_SECRET) {
-      return jsonResponse({ error: "unauthorized" }, 401);
+    // Optional shared-secret gate via `Authorization: Bearer <PROXY_SECRET>`.
+    if (env.PROXY_SECRET) {
+      const auth = request.headers.get("Authorization") ?? "";
+      const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+      if (bearer !== env.PROXY_SECRET) {
+        return jsonResponse({ error: "unauthorized" }, 401);
+      }
     }
     if (!env.SWIFTLY_API_KEY) {
       return jsonResponse({ error: "SWIFTLY_API_KEY not configured" }, 500);
