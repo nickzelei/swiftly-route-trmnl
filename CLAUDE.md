@@ -39,21 +39,22 @@ payload TRMNL can render directly.
   `vehicle_positions.py` remain useful for debugging the live feed.
 
 The two runtimes are independent: `explore/` is Python via `uv`, `worker/` is
-Node via `mise`. There is no shared build.
+Node via `npm`. There is no shared build. `mise` provides both `uv` and Node,
+so a single `mise install` bootstraps the whole repo.
 
 ## Toolchain: mise
 
-**`mise` is the version/tool manager for everything Node-related in this repo**
-(Node, npm, npx, wrangler, tsc). Node is not assumed to be on the system PATH —
-it is provided by `mise` and pinned in `worker/mise.toml`. Do not install Node
-globally or via another manager; use mise.
+**`mise` is the version/tool manager for the whole repo** — it provides Node
+(npm, npx, wrangler, tsc) for `worker/` and `uv` for `explore/`. Neither is
+assumed to be on the system PATH; both are pinned in `mise.toml` at the repo
+root. Do not install Node or uv globally or via another manager; use mise.
 
-- First time / after cloning: `mise install` in `worker/` (run `mise trust` if
-  prompted about the untrusted config).
-- If mise is activated in the shell, `node`/`npm`/`npx` resolve automatically
-  inside `worker/`.
-- If it is not activated, prefix every Node command with `mise exec -- `
-  (e.g. `mise exec -- npm run typecheck`).
+- First time / after cloning: `mise install` at the repo root (run `mise trust`
+  if prompted about the untrusted config).
+- If mise is activated in the shell, `node`/`npm`/`npx`/`uv` resolve
+  automatically anywhere in the repo.
+- If it is not activated, prefix every command with `mise exec -- `
+  (e.g. `mise exec -- npm run typecheck`, `mise exec -- uv run trip_updates.py`).
 
 ## Commands
 
