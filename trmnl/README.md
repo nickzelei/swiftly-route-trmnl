@@ -23,15 +23,17 @@ These templates expect the JSON the Cloudflare Worker returns. With TRMNL's
   "route_id": "19417",
   "updated_at": "7:11 PM",
   "ferry_building": [
-    { "vehicle": "Cetus", "stop": "Ferry Building Gate G", "mins": 12, "time": "7:11 PM" }
+    { "vehicle": "Cetus", "stop": "Ferry Building Gate G", "kind": "departure", "mins": 12, "time": "7:11 PM" }
   ],
   "seaplane": [
-    { "vehicle": "Taurus", "stop": "Seaplane Lagoon", "mins": 20, "time": "7:17 PM" }
+    { "vehicle": "Taurus", "stop": "Seaplane Lagoon", "kind": "arrival", "mins": 20, "time": "7:17 PM" }
   ]
 }
 ```
 
 So `{{ updated_at }}`, `{% for a in ferry_building %}`, `{{ a.mins }}`, etc.
+Each row's `kind` is `"arrival"` or `"departure"`; the templates label it
+"Arrives" / "Departs".
 
 ## Installing
 

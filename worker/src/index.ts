@@ -23,6 +23,7 @@ interface Env {
 interface Arrival {
   vehicle: string;
   stop: string;
+  kind: "arrival" | "departure";
   mins: number;
   time: string;
 }
@@ -117,17 +118,20 @@ export default {
         const stop = STOPS[stopId];
         if (!stop) continue;
 
-        // "Arriving at X" -> use the arrival event.
-        const arrival = pick(stu, "arrival") ?? {};
-        const epoch = pick(arrival, "time");
+        // Prefer the arrival time; the ferry feed often carries only a
+        // departure time (e.g. at origin gates), so fall back to that.
+        const arrivalTime = pick(pick(stu, "arrival") ?? {}, "time");
+        const departureTime = pick(pick(stu, "departure") ?? {}, "time");
+        const epoch = arrivalTime ?? departureTime;
         if (!epoch) continue;
 
         const mins = Math.round((Number(epoch) - now) / 60);
-        if (mins < 0) continue; // already arrived
+        if (mins < 0) continue; // already happened
 
         arrivals[stop.place].push({
           vehicle: vehicleId,
           stop: stop.label,
+          kind: arrivalTime ? "arrival" : "departure",
           mins,
           time: clockTime(Number(epoch) * 1000, tz),
         });

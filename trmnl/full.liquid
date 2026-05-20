@@ -8,7 +8,7 @@
 
     <div class="column">
       <span class="title">Ferry Building</span>
-      <span class="description">Arrivals from Alameda</span>
+      <span class="description">To &amp; from Alameda Seaplane</span>
 
       {% if ferry_building.size > 0 %}
         {% for a in ferry_building limit: 4 %}
@@ -16,18 +16,18 @@
             <div class="content">
               <span class="value value--xlarge value--tnums">{{ a.mins }}</span>
               <span class="label label--small label--underline">min</span>
-              <span class="label label--small">{{ a.time }} &middot; {{ a.vehicle }}</span>
+              <span class="label label--small">{% if a.kind == "departure" %}Departs{% else %}Arrives{% endif %} {{ a.time }} &middot; {{ a.vehicle }}</span>
             </div>
           </div>
         {% endfor %}
       {% else %}
-        <span class="label">No upcoming arrivals</span>
+        <span class="label">No upcoming sailings</span>
       {% endif %}
     </div>
 
     <div class="column">
       <span class="title">Seaplane Lagoon</span>
-      <span class="description">Arrivals from San Francisco</span>
+      <span class="description">To &amp; from San Francisco</span>
 
       {% if seaplane.size > 0 %}
         {% for a in seaplane limit: 4 %}
@@ -35,12 +35,12 @@
             <div class="content">
               <span class="value value--xlarge value--tnums">{{ a.mins }}</span>
               <span class="label label--small label--underline">min</span>
-              <span class="label label--small">{{ a.time }} &middot; {{ a.vehicle }}</span>
+              <span class="label label--small">{% if a.kind == "departure" %}Departs{% else %}Arrives{% endif %} {{ a.time }} &middot; {{ a.vehicle }}</span>
             </div>
           </div>
         {% endfor %}
       {% else %}
-        <span class="label">No upcoming arrivals</span>
+        <span class="label">No upcoming sailings</span>
       {% endif %}
     </div>
 

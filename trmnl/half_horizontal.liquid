@@ -1,6 +1,6 @@
 {% comment %}
   TRMNL "Half Horizontal" layout (800x240) for the SF Bay Ferry plugin.
-  Shows just the next arrival for each terminal.
+  Shows just the next sailing for each terminal.
 {% endcomment %}
 
 <div class="layout">
@@ -14,11 +14,11 @@
           <div class="content">
             <span class="value value--xxlarge value--tnums">{{ next.mins }}</span>
             <span class="label label--small label--underline">min</span>
-            <span class="label label--small">{{ next.time }} &middot; {{ next.vehicle }}</span>
+            <span class="label label--small">{% if next.kind == "departure" %}Departs{% else %}Arrives{% endif %} {{ next.time }} &middot; {{ next.vehicle }}</span>
           </div>
         </div>
       {% else %}
-        <span class="label">No upcoming arrivals</span>
+        <span class="label">No upcoming sailings</span>
       {% endif %}
     </div>
 
@@ -30,11 +30,11 @@
           <div class="content">
             <span class="value value--xxlarge value--tnums">{{ next.mins }}</span>
             <span class="label label--small label--underline">min</span>
-            <span class="label label--small">{{ next.time }} &middot; {{ next.vehicle }}</span>
+            <span class="label label--small">{% if next.kind == "departure" %}Departs{% else %}Arrives{% endif %} {{ next.time }} &middot; {{ next.vehicle }}</span>
           </div>
         </div>
       {% else %}
-        <span class="label">No upcoming arrivals</span>
+        <span class="label">No upcoming sailings</span>
       {% endif %}
     </div>
 

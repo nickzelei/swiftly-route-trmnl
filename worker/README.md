@@ -55,15 +55,17 @@ Authorization: Bearer <PROXY_SECRET>
   "route_id": "19417",
   "updated_at": "7:11 PM",
   "ferry_building": [
-    { "vehicle": "Cetus", "stop": "Ferry Building Gate G", "mins": 12, "time": "7:11 PM" }
+    { "vehicle": "Cetus", "stop": "Ferry Building Gate G", "kind": "departure", "mins": 12, "time": "7:11 PM" }
   ],
   "seaplane": [
-    { "vehicle": "Taurus", "stop": "Seaplane Lagoon", "mins": 20, "time": "7:17 PM" }
+    { "vehicle": "Taurus", "stop": "Seaplane Lagoon", "kind": "arrival", "mins": 20, "time": "7:17 PM" }
   ]
 }
 ```
 
 Both lists are sorted soonest-first. The Liquid template iterates them.
+`kind` is `"arrival"` or `"departure"` — the feed often carries only one per
+stop, so the Worker reports whichever it gets.
 
 ## Config
 
