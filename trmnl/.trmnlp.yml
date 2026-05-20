@@ -7,7 +7,11 @@ watch:
   - src
 
 # Dev values for the plugin's custom fields (defined in src/settings.yml).
+# api_url / api_key come from the environment so no personal URL or secret is
+# checked into the repo. trmnlp has no .env support of its own; mise loads a
+# gitignored root .env into the environment instead (see .env.example).
 custom_fields:
+  api_url: "{{ env.PROXY_URL }}"
   agency: sfbay-ferry
   route: 19417
   api_key: "{{ env.PROXY_SECRET }}"
@@ -16,10 +20,11 @@ custom_fields:
 # previews render offline with no Swiftly API key. The top-level keys become
 # Liquid variables directly (TRMNL's Polling strategy; see README.md).
 #
-# To preview against LIVE data instead: comment out this `variables:` block and
-# either (a) leave src/settings.yml's polling_url pointed at the deployed
-# Worker, or (b) start the Worker locally (`cd worker && npm run dev`) and set
-# polling_url to `http://localhost:8787?agency=sfbay-ferry&route=19417`.
+# To preview against LIVE data instead: comment out this `variables:` block.
+# polling_url is `{{ api_url }}?agency=...&route=...`, so point the `api_url`
+# custom field above at either (a) your deployed Worker via the PROXY_URL env
+# var, or (b) a local Worker (`cd worker && npm run dev`) by setting PROXY_URL
+# to `http://localhost:8787`.
 variables:
   agency: sfbay-ferry
   route_id: "19417"

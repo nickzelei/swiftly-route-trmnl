@@ -6,7 +6,7 @@ static_data: ''
 polling_verb: get
 framework_version: latest
 serverless_language: ''
-polling_url: "{{ base_url }}?agency={{ agency }}&route={{ route }}"
+polling_url: "{{ api_url }}?agency={{ agency }}&route={{ route }}"
 polling_headers: Authorization=Bearer {{ api_key }}
 polling_body: ''
 id: 310138

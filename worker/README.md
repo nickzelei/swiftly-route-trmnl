@@ -55,17 +55,21 @@ comes back as `Swiftly rejected the API key for this agency`.
 
 ## Use in TRMNL
 
-Set the plugin Strategy to **Polling**. Add custom form fields for `agency` and
-`route`, then configure:
+Set the plugin Strategy to **Polling**. Add custom form fields for `api_url`,
+`agency`, and `route`, then configure:
 
 ```
-URL: https://swiftly-trmnl.<subdomain>.workers.dev/?agency={{agency}}&route={{route}}
+URL: {{api_url}}?agency={{agency}}&route={{route}}
 ```
 
-If you set `PROXY_SECRET`, add a polling header:
+Set the `api_url` field to your deployed Worker
+(`https://swiftly-trmnl.<subdomain>.workers.dev`) — keeping it a form field
+means each install supplies its own proxy rather than hard-coding one.
+
+If you set `PROXY_SECRET`, add an `api_key` form field and a polling header:
 
 ```
-Authorization: Bearer <PROXY_SECRET>
+Authorization: Bearer {{api_key}}
 ```
 
 ## Response shape
@@ -116,15 +120,19 @@ so the template can render a message instead of breaking.
 ## Local test
 
 Quick check — runs the handler directly against the live API (no wrangler;
-Node 24 strips the TypeScript types natively):
+Node 24 strips the TypeScript types natively). It reads `SWIFTLY_API_KEY` from
+the environment; put it in the repo-root `.env` (mise loads it — see
+`.env.example`) or pass it inline:
 
 ```sh
-SWIFTLY_API_KEY=... mise exec -- node _smoketest.ts                  # sfbay-ferry / 19417
-SWIFTLY_API_KEY=... mise exec -- node _smoketest.ts sfbay-ferry 11114 # another route
-npm run typecheck                                                    # tsc, no emit
+mise exec -- node _smoketest.ts                  # sfbay-ferry / 19417
+mise exec -- node _smoketest.ts sfbay-ferry 11114 # another route
+SWIFTLY_API_KEY=... mise exec -- node _smoketest.ts  # inline, if no .env
+npm run typecheck                                # tsc, no emit
 ```
 
-Full local server (put `SWIFTLY_API_KEY=...` in `worker/.dev.vars` first):
+Full local server — copy `.dev.vars.example` to `.dev.vars` and fill in
+`SWIFTLY_API_KEY` (wrangler reads `.dev.vars` for local secret bindings):
 
 ```sh
 npx wrangler dev

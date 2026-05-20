@@ -110,7 +110,9 @@ Credentials come from `explore/.env` (`SWIFTLY_API_KEY`, `AGENCY_KEY`).
 - `trmnlp pull` — overwrite `src/settings.yml` from the server
 
 Preview uses the static sample in `.trmnlp.yml`'s `variables:` block by
-default; comment it out to poll live data. `.github/workflows/trmnl.yml`
+default; comment it out to poll live data, which needs `PROXY_URL` (and
+`PROXY_SECRET` if the Worker gates) in the environment — mise loads these from
+a gitignored root `.env` (see `.env.example`). `.github/workflows/trmnl.yml`
 builds on every PR and pushes to TRMNL on merge to `main`.
 
 ## Key facts

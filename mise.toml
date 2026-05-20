@@ -14,3 +14,10 @@ postinstall = "gem install --conservative trmnl_preview"
 # so contributors don't have to flip a global setting.
 [settings]
 experimental = true
+
+# Load PROXY_URL / PROXY_SECRET from a gitignored root .env so trmnlp can
+# preview against live data (it has no .env support of its own). Optional —
+# previews use the static payload in trmnl/.trmnlp.yml when these are unset.
+# See .env.example.
+[env]
+_.file = ".env"

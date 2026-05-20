@@ -1,0 +1,13 @@
+# Copy to worker/.dev.vars (gitignored). `npx wrangler dev` reads this file
+# for the Worker's secret bindings during local development.
+#
+# This is LOCAL DEV ONLY. `wrangler deploy` does not read it — upload
+# production secrets to Cloudflare with `wrangler secret put`:
+#   npx wrangler secret put SWIFTLY_API_KEY
+#   npx wrangler secret put PROXY_SECRET
+
+# Required. Your Swiftly API key (account-scoped to specific agencies).
+SWIFTLY_API_KEY=
+
+# Optional. If set, callers must send `Authorization: Bearer <PROXY_SECRET>`.
+PROXY_SECRET=

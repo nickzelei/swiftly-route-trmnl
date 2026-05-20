@@ -87,11 +87,13 @@ still attempts the live poll and may print a harmless `401` until you set
 `PROXY_SECRET`; the static `variables:` override is what actually renders.)
 
 To preview against **live** data, comment out the `variables:` block in
-`.trmnlp.yml` and either:
-- leave `src/settings.yml`'s `polling_url` pointed at the deployed Worker
-  (set `PROXY_SECRET` in your environment so the proxy auth header resolves), or
-- run the Worker locally (`cd ../worker && npm run dev`) and set `polling_url`
-  to `http://localhost:8787?agency=sfbay-ferry&route=19417`.
+`.trmnlp.yml`. `polling_url` is built from the `api_url` custom field
+(`{{ api_url }}?agency=...&route=...`), which `.trmnlp.yml` fills from the
+`PROXY_URL` env var. Copy `.env.example` to `.env` at the repo root (mise loads
+it — see the root `mise.toml`) and set `PROXY_URL` to either:
+- the deployed Worker (and set `PROXY_SECRET` so the proxy auth header
+  resolves), or
+- a local Worker (`cd ../worker && npm run dev`) at `http://localhost:8787`.
 
 ## Deploying
 
