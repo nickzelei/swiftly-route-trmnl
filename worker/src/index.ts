@@ -20,12 +20,24 @@ interface Env {
   PROXY_SECRET?: string;
 }
 
-interface Arrival {
+interface Sailing {
+  kind: "arrival" | "departure";
   vehicle: string;
   stop: string;
-  kind: "arrival" | "departure";
+}
+
+// One Sailing as collected from the feed, before same-time grouping.
+interface Arrival extends Sailing {
   mins: number;
   time: string;
+}
+
+// Sailings that share a clock time, so the display can show the time once
+// with each vehicle listed under it.
+interface TimeGroup {
+  time: string;
+  mins: number;
+  sailings: Sailing[];
 }
 
 const SWIFTLY_BASE = "https://api.goswift.ly";
@@ -50,6 +62,21 @@ function jsonResponse(body: unknown, status = 200): Response {
     status,
     headers: { "content-type": "application/json; charset=utf-8" },
   });
+}
+
+// Collapse sailings sharing a clock time into one group. Input is assumed
+// sorted soonest-first, so groups come out in that order too.
+function groupByTime(list: Arrival[]): TimeGroup[] {
+  const byTime = new Map<string, TimeGroup>();
+  for (const a of list) {
+    let g = byTime.get(a.time);
+    if (!g) {
+      g = { time: a.time, mins: a.mins, sailings: [] };
+      byTime.set(a.time, g);
+    }
+    g.sailings.push({ kind: a.kind, vehicle: a.vehicle, stop: a.stop });
+  }
+  return [...byTime.values()];
 }
 
 function clockTime(epochMs: number, timeZone: string): string {
@@ -143,8 +170,8 @@ export default {
     return jsonResponse({
       route_id: routeId,
       updated_at: clockTime(Date.now(), tz),
-      ferry_building: arrivals.ferry_building,
-      seaplane: arrivals.seaplane,
+      ferry_building: groupByTime(arrivals.ferry_building),
+      seaplane: groupByTime(arrivals.seaplane),
     });
   },
 };

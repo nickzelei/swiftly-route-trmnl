@@ -7,8 +7,8 @@ Markup for the SF Bay Ferry plugin's e-ink display. Built on the
 
 | File | TRMNL layout | Shows |
 |---|---|---|
-| `full.liquid` | Full (800x480) | Up to 4 arrivals per terminal |
-| `half_horizontal.liquid` | Half Horizontal (800x240) | Next arrival per terminal |
+| `full.liquid` | Full (800x480) | Up to 4 sailing times per terminal |
+| `half_horizontal.liquid` | Half Horizontal (800x240) | Next sailing time per terminal |
 
 For Half Vertical / Quadrant, copy `half_horizontal.liquid` and trim — the
 data and class names are identical.
@@ -23,17 +23,32 @@ These templates expect the JSON the Cloudflare Worker returns. With TRMNL's
   "route_id": "19417",
   "updated_at": "7:11 PM",
   "ferry_building": [
-    { "vehicle": "Cetus", "stop": "Ferry Building Gate G", "kind": "departure", "mins": 12, "time": "7:11 PM" }
+    {
+      "time": "7:11 PM",
+      "mins": 12,
+      "sailings": [
+        { "kind": "departure", "vehicle": "Cetus", "stop": "Ferry Building Gate G" }
+      ]
+    }
   ],
   "seaplane": [
-    { "vehicle": "Taurus", "stop": "Seaplane Lagoon", "kind": "arrival", "mins": 20, "time": "7:17 PM" }
+    {
+      "time": "7:17 PM",
+      "mins": 20,
+      "sailings": [
+        { "kind": "arrival", "vehicle": "Taurus", "stop": "Seaplane Lagoon" }
+      ]
+    }
   ]
 }
 ```
 
-So `{{ updated_at }}`, `{% for a in ferry_building %}`, `{{ a.mins }}`, etc.
-Each row's `kind` is `"arrival"` or `"departure"`; the templates label it
-"Arrives" / "Departs".
+Each terminal is a list of **time groups** (`{% for g in ferry_building %}`),
+soonest-first. A group holds every vessel sailing at that clock time
+(`{% for s in g.sailings %}`), so the template shows `{{ g.time }}` once as a
+hero number with each `s.kind` / `s.vehicle` listed under it. The absolute
+`time` is shown rather than the `mins` countdown — `mins` goes stale between
+TRMNL's slow refreshes, the clock time does not.
 
 ## Installing
 

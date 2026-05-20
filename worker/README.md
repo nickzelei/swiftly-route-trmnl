@@ -55,17 +55,32 @@ Authorization: Bearer <PROXY_SECRET>
   "route_id": "19417",
   "updated_at": "7:11 PM",
   "ferry_building": [
-    { "vehicle": "Cetus", "stop": "Ferry Building Gate G", "kind": "departure", "mins": 12, "time": "7:11 PM" }
+    {
+      "time": "7:11 PM",
+      "mins": 12,
+      "sailings": [
+        { "kind": "departure", "vehicle": "Cetus", "stop": "Ferry Building Gate G" }
+      ]
+    }
   ],
   "seaplane": [
-    { "vehicle": "Taurus", "stop": "Seaplane Lagoon", "kind": "arrival", "mins": 20, "time": "7:17 PM" }
+    {
+      "time": "7:17 PM",
+      "mins": 20,
+      "sailings": [
+        { "kind": "arrival", "vehicle": "Taurus", "stop": "Seaplane Lagoon" }
+      ]
+    }
   ]
 }
 ```
 
-Both lists are sorted soonest-first. The Liquid template iterates them.
-`kind` is `"arrival"` or `"departure"` — the feed often carries only one per
-stop, so the Worker reports whichever it gets.
+Each terminal is a list of **time groups**, sorted soonest-first. Every vessel
+sailing at the same clock time shares one group, so the display can show the
+time once with each vessel under it. `kind` is `"arrival"` or `"departure"` —
+the feed often carries only one per stop, so the Worker reports whichever it
+gets. `mins` is the countdown at fetch time (the templates show `time`, which
+does not go stale between TRMNL refreshes).
 
 ## Config
 

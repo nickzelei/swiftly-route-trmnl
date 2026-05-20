@@ -1,6 +1,7 @@
 {% comment %}
   TRMNL "Half Horizontal" layout (800x240) for the SF Bay Ferry plugin.
-  Shows just the next sailing for each terminal.
+  Shows the next sailing time per terminal; if multiple vessels share that
+  time, each is listed under it.
 {% endcomment %}
 
 <div class="layout">
@@ -9,12 +10,13 @@
     <div class="column">
       <span class="title">Ferry Building</span>
       {% if ferry_building.size > 0 %}
-        {% assign next = ferry_building.first %}
+        {% assign g = ferry_building.first %}
         <div class="item">
           <div class="content">
-            <span class="value value--xxlarge value--tnums">{{ next.mins }}</span>
-            <span class="label label--small label--underline">min</span>
-            <span class="label label--small">{% if next.kind == "departure" %}Departs{% else %}Arrives{% endif %} {{ next.time }} &middot; {{ next.vehicle }}</span>
+            <span class="value value--xlarge value--tnums">{{ g.time }}</span>
+            {% for s in g.sailings %}
+              <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}</span>
+            {% endfor %}
           </div>
         </div>
       {% else %}
@@ -25,12 +27,13 @@
     <div class="column">
       <span class="title">Seaplane Lagoon</span>
       {% if seaplane.size > 0 %}
-        {% assign next = seaplane.first %}
+        {% assign g = seaplane.first %}
         <div class="item">
           <div class="content">
-            <span class="value value--xxlarge value--tnums">{{ next.mins }}</span>
-            <span class="label label--small label--underline">min</span>
-            <span class="label label--small">{% if next.kind == "departure" %}Departs{% else %}Arrives{% endif %} {{ next.time }} &middot; {{ next.vehicle }}</span>
+            <span class="value value--xlarge value--tnums">{{ g.time }}</span>
+            {% for s in g.sailings %}
+              <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}</span>
+            {% endfor %}
           </div>
         </div>
       {% else %}

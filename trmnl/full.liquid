@@ -11,12 +11,13 @@
       <span class="description">To &amp; from Alameda Seaplane</span>
 
       {% if ferry_building.size > 0 %}
-        {% for a in ferry_building limit: 4 %}
+        {% for g in ferry_building limit: 4 %}
           <div class="item">
             <div class="content">
-              <span class="value value--xlarge value--tnums">{{ a.mins }}</span>
-              <span class="label label--small label--underline">min</span>
-              <span class="label label--small">{% if a.kind == "departure" %}Departs{% else %}Arrives{% endif %} {{ a.time }} &middot; {{ a.vehicle }}</span>
+              <span class="value value--large value--tnums">{{ g.time }}</span>
+              {% for s in g.sailings %}
+                <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}</span>
+              {% endfor %}
             </div>
           </div>
         {% endfor %}
@@ -30,12 +31,13 @@
       <span class="description">To &amp; from San Francisco</span>
 
       {% if seaplane.size > 0 %}
-        {% for a in seaplane limit: 4 %}
+        {% for g in seaplane limit: 4 %}
           <div class="item">
             <div class="content">
-              <span class="value value--xlarge value--tnums">{{ a.mins }}</span>
-              <span class="label label--small label--underline">min</span>
-              <span class="label label--small">{% if a.kind == "departure" %}Departs{% else %}Arrives{% endif %} {{ a.time }} &middot; {{ a.vehicle }}</span>
+              <span class="value value--large value--tnums">{{ g.time }}</span>
+              {% for s in g.sailings %}
+                <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}</span>
+              {% endfor %}
             </div>
           </div>
         {% endfor %}
