@@ -14,9 +14,9 @@
           {% for g in sec.groups limit: 4 %}
             <div class="item">
               <div class="content">
-                <span class="value value--large value--tnums">{{ g.time }}</span>
+                <span class="value value--xxlarge value--tnums">{{ g.time }}</span>
                 {% for s in g.sailings %}
-                  <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}{% if s.stop != blank %} &middot; {{ s.stop }}{% endif %}</span>
+                  <span class="label label--medium">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}{% if s.stop != blank %} &middot; {{ s.stop }}{% endif %}</span>
                 {% endfor %}
               </div>
             </div>
