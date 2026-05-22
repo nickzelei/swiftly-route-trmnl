@@ -1,15 +1,16 @@
 {% comment %}
-  TRMNL "Quadrant" layout (400x240). The route's two directions stacked
-  top/bottom; each shows only the next sailing time group. Kind is abbreviated
-  (DEP/ARR) to fit the tight space. See trmnl/README.md.
+  TRMNL "Quadrant" layout (400x240). A mobile-style column stack: the route's
+  two directions stacked top/bottom, each shows only the next sailing time
+  group. Kind is abbreviated (DEP/ARR) to fit the tight space.
+  See trmnl/README.md.
 {% endcomment %}
 
 <div class="layout">
   {% if sections.size > 0 %}
-  <div class="rows">
+  <div class="flex flex--col gap--medium w--full">
     {% for sec in sections limit: 2 %}
-      <div class="row">
-        <span class="title">{{ sec.title }}</span>
+      <div class="flex flex--col gap--small w--full">
+        <span class="title title--small">{{ sec.title }}</span>
 
         {% if sec.groups.size > 0 %}
           {% assign g = sec.groups.first %}
