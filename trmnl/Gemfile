@@ -1,0 +1,10 @@
+# frozen_string_literal: true
+
+# trmnl_preview provides the `trmnlp` CLI (dev server, build, push) for this
+# plugin project. Pinned here — with Gemfile.lock, this is the single source
+# of truth for the gem version: mise's postinstall hook and CI both install
+# from it. `bin/trmnlp` is a committed binstub so the bare command keeps
+# working without a `bundle exec` prefix.
+source "https://rubygems.org"
+
+gem "trmnl_preview", "0.7.1"

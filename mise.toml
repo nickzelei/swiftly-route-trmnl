@@ -3,12 +3,13 @@ node = "lts"
 uv = "latest"
 ruby = "3.4"
 
-# trmnlp (the TRMNL plugin dev server) ships as the trmnl_preview gem. mise's
-# `gem:` backend mis-resolves its dependency tree, so install it via a hook
-# instead — `--conservative` makes this a fast no-op once it's present, so a
-# single `mise install` still bootstraps the whole repo.
+# trmnlp (the TRMNL plugin dev server) ships as the trmnl_preview gem, pinned
+# in trmnl/Gemfile (the single source of truth — CI installs from it too).
+# mise's `gem:` backend mis-resolves its dependency tree, so install via a hook
+# running Bundler instead — `bundle install` is a fast no-op once satisfied, so
+# a single `mise install` still bootstraps the whole repo.
 [hooks]
-postinstall = "gem install --conservative trmnl_preview"
+postinstall = "BUNDLE_GEMFILE=trmnl/Gemfile bundle install"
 
 # Hooks are gated behind mise's experimental flag; enable it project-locally
 # so contributors don't have to flip a global setting.
@@ -21,3 +22,6 @@ experimental = true
 # See .env.example.
 [env]
 _.file = ".env"
+# Put trmnl/bin on PATH — it holds the committed `trmnlp` binstub Bundler
+# generated, so the bare `trmnlp` command works without a `bundle exec` prefix.
+_.path = ["trmnl/bin"]

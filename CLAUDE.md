@@ -62,9 +62,11 @@ bootstraps the whole repo.
 another manager; use mise.
 
 - First time / after cloning: `mise install` at the repo root (run `mise trust`
-  if prompted about the untrusted config). A `postinstall` hook also installs
-  the `trmnl_preview` gem (which provides the `trmnlp` command) — mise's `gem:`
-  backend mis-resolves its dependencies, hence the hook. Hooks need
+  if prompted about the untrusted config). A `postinstall` hook also runs
+  `bundle install` for `trmnl/Gemfile`, which pins the `trmnl_preview` gem
+  (it provides `trmnlp`, exposed as the committed `trmnl/bin/trmnlp` binstub so
+  the bare command works without `bundle exec`) — mise's `gem:` backend
+  mis-resolves its dependencies, hence Bundler via a hook. Hooks need
   `experimental = true`, set project-locally in `mise.toml`.
 - If mise is activated in the shell, `node`/`npm`/`npx`/`uv`/`trmnlp` resolve
   automatically anywhere in the repo.
