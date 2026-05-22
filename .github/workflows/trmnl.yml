@@ -17,14 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      # bundler-cache restores the gems from Gemfile.lock on a cache hit,
-      # skipping the ~1 min install on every run after the first.
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.4"
-          working-directory: trmnl
-          bundler-cache: true
-      - run: bin/trmnlp build
+      # Installs the tools pinned in mise.toml (incl. the trmnl_preview gem)
+      # and caches them, so the gem install is skipped after the first run.
+      - uses: jdx/mise-action@v2
+      - run: trmnlp build
 
   # Deploy the templates + settings.yml to TRMNL on merge to main.
   # Requires the TRMNL_API_KEY repo secret and an `id:` in src/settings.yml.
@@ -34,11 +30,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: "3.4"
-          working-directory: trmnl
-          bundler-cache: true
-      - run: bin/trmnlp push --force
+      - uses: jdx/mise-action@v2
+      - run: trmnlp push --force
         env:
           TRMNL_API_KEY: ${{ secrets.TRMNL_API_KEY }}

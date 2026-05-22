@@ -1,6 +1,2 @@
 # trmnlp render output
 _build/
-
-# bin/ holds the committed trmnlp binstub — re-include it; the repo-root
-# .gitignore ignores every directory named `bin`.
-!bin/
