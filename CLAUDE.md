@@ -108,12 +108,29 @@ Credentials come from `explore/.env` (`SWIFTLY_API_KEY`, `AGENCY_KEY`).
 - `trmnlp push` — deploy `src/` to TRMNL; needs an `id:` in `src/settings.yml`
   and auth (`trmnlp login` once, or `TRMNL_API_KEY`)
 - `trmnlp pull` — overwrite `src/settings.yml` from the server
+- `npm run screenshots` — render all four layouts to `docs/screenshots/*.png`
+  via headless Chromium against `trmnlp serve` (the script spawns it if not
+  running). **This is the visual feedback loop when editing `src/*.liquid`:
+  edit a template, run this, then Read the PNG to see the change.** Routing
+  through the dev server (not `trmnlp build`) is intentional — the static
+  `_build/` HTML is missing the `<div class="trmnl">` design-system scope and
+  the `screen_classes` CSS scoping, so it renders incorrectly. The script
+  currently hardcodes TRMNL X (1040×780, `screen--v2 screen--lg`,
+  16-grays palette); see `trmnl/scripts/screenshots.mjs` for the constants
+  and the picker class mapping if you need to check a different device.
+  Tooling lives in `trmnl/package.json` purely for this — it isn't part of
+  the plugin runtime.
 
 Preview uses the static sample in `.trmnlp.yml`'s `variables:` block by
 default; comment it out to poll live data, which needs `PROXY_URL` (and
 `PROXY_SECRET` if the Worker gates) in the environment — mise loads these from
 a gitignored root `.env` (see `.env.example`). `.github/workflows/trmnl.yml`
 builds on every PR and pushes to TRMNL on merge to `main`.
+
+Known templates limitation: `half_vertical` (and likely `quadrant`) overflow
+on smaller devices like the original TRMNL — see
+[`docs/TODO-responsive-layouts.md`](docs/TODO-responsive-layouts.md) for the
+plan to make templates work across every device in `usetrmnl.com/api/models`.
 
 ## Key facts
 
