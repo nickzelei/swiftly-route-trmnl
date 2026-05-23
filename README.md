@@ -1,4 +1,4 @@
-# sfbayferry — Transit arrivals on TRMNL
+# Swiftly Routes — Transit arrivals on TRMNL
 
 A [TRMNL](https://usetrmnl.com/) e-ink plugin that shows upcoming transit
 arrivals for any Swiftly agency + route. Built for the SF Bay Ferry Alameda
