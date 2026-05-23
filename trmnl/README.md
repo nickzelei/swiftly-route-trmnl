@@ -12,16 +12,16 @@ TRMNL.
 
 | File | TRMNL layout | Shows |
 |---|---|---|
-| `src/full.liquid` | Full (800x480) | Up to 4 sailing times per direction |
-| `src/half_horizontal.liquid` | Half Horizontal (800x240) | Next sailing time per direction |
-| `src/half_vertical.liquid` | Half Vertical (400x480) | Up to 3 sailing times per direction, stacked |
-| `src/quadrant.liquid` | Quadrant (400x240) | Next sailing time per direction, stacked |
+| `src/full.liquid` | Full (800x480) | Up to 4 trips per direction |
+| `src/half_horizontal.liquid` | Half Horizontal (800x240) | Next trip per direction |
+| `src/half_vertical.liquid` | Half Vertical (400x480) | Up to 2 trips per direction, stacked |
+| `src/quadrant.liquid` | Quadrant (400x240) | Next trip per direction, stacked |
 | `src/settings.yml` | — | Plugin config (strategy, polling URL, form fields) |
 | `.trmnlp.yml` | — | Dev-server config + static preview data (not uploaded) |
 
 The two 800-wide layouts arrange the directions as side-by-side `columns`; the
-two 400-wide layouts stack them top/bottom as `rows`. `quadrant.liquid`
-abbreviates the sailing kind to `DEP`/`ARR` to fit the tight space.
+two 400-wide layouts stack them top/bottom as `rows`. Each trip renders as one
+row: the stop-name chain over the matching time chain, with the vessel below.
 
 ## Data shape
 
@@ -38,12 +38,12 @@ These templates expect the JSON the Cloudflare Worker returns. With TRMNL's
     {
       "title": "To San Francisco Ferry Building Gate F",
       "direction_id": "1",
-      "groups": [
+      "trips": [
         {
-          "time": "7:11 PM",
-          "mins": 12,
-          "sailings": [
-            { "kind": "departure", "vehicle": "Cetus", "stop": "Alameda Seaplane Lagoon Ferry Terminal" }
+          "vehicle": "Cetus",
+          "stops": [
+            { "name": "Alameda Seaplane Lagoon Ferry Terminal", "time": "7:11 PM", "mins": 12 },
+            { "name": "San Francisco Ferry Building Gate F", "time": "7:27 PM", "mins": 28 }
           ]
         }
       ]
@@ -54,12 +54,12 @@ These templates expect the JSON the Cloudflare Worker returns. With TRMNL's
 
 `sections` is a list with one entry per route **direction** — the templates
 iterate it (`{% for sec in sections limit: 2 %}`) and use `sec.title` as the
-column/row heading. Each section's `groups` is a list of **time groups**,
-soonest-first. A group holds every vessel sailing at that clock time
-(`{% for s in g.sailings %}`), so the template shows `{{ g.time }}` once as a
-hero number with each `s.kind` / `s.vehicle` under it. The absolute `time` is
-shown rather than the `mins` countdown — `mins` goes stale between TRMNL's slow
-refreshes, the clock time does not.
+column/row heading. Each section's `trips` is a list of sailings, soonest-first
+by origin departure. A trip is a `vehicle` plus an ordered `stops` chain
+(origin → any intermediate stops → destination); the template renders the
+`stop.name` chain over the `stop.time` chain (`{% for stop in trip.stops %}`).
+The absolute `time` is shown rather than the `mins` countdown — `mins` goes
+stale between TRMNL's slow refreshes, the clock time does not.
 
 When `sections` is empty (the Worker returns `error` for a missing/invalid
 input), the templates render that message instead. The title bar shows
@@ -105,5 +105,5 @@ it — see the root `mise.toml`) and set `PROXY_URL` to either:
 On merge to `main`, `.github/workflows/trmnl.yml` runs `trmnlp push`
 automatically — set the `TRMNL_API_KEY` repo secret to enable it.
 
-The sailing lists are already sorted soonest-first by the Worker, and capped
+The trip lists are already sorted soonest-first by the Worker, and capped
 with `limit:` in the template, so no sorting is needed here.

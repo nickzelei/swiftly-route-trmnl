@@ -1,25 +1,24 @@
 {% comment %}
   TRMNL "Quadrant" layout (400x240). A mobile-style column stack: the route's
-  two directions stacked top/bottom, each shows only the next sailing time
-  group. Kind is abbreviated (DEP/ARR) to fit the tight space.
+  two directions stacked top/bottom, each shows only the next trip — a stop
+  chain over the matching time chain, kept compact for the tight space.
   See trmnl/README.md.
 {% endcomment %}
 
 <div class="layout">
   {% if sections.size > 0 %}
-  <div class="flex flex--col gap--medium w--full">
+  <div class="flex flex--col gap--small w--full">
     {% for sec in sections limit: 2 %}
-      <div class="flex flex--col gap--small w--full">
+      <div class="flex flex--col w--full">
         <span class="title title--small">{{ sec.title }}</span>
 
-        {% if sec.groups.size > 0 %}
-          {% assign g = sec.groups.first %}
+        {% if sec.trips.size > 0 %}
+          {% assign trip = sec.trips.first %}
           <div class="item">
             <div class="content">
-              <span class="value value--large value--tnums">{{ g.time }}</span>
-              {% for s in g.sailings %}
-                <span class="label label--small">{% if s.kind == "departure" %}DEP{% else %}ARR{% endif %} &middot; {{ s.vehicle }}{% if s.stop != blank %} &middot; {{ s.stop }}{% endif %}</span>
-              {% endfor %}
+              <span class="label label--small" data-clamp="1">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.name }}{% endfor %}</span>
+              <span class="value value--small value--tnums" data-value-fit="true">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.time }}{% endfor %}</span>
+              <span class="label label--small">{{ trip.vehicle }}</span>
             </div>
           </div>
         {% else %}

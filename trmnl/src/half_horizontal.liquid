@@ -1,7 +1,7 @@
 {% comment %}
   TRMNL "Half Horizontal" layout (800x240). Each route direction is a column
-  showing its next sailing time; if multiple vessels share that time, each is
-  listed under it. See trmnl/README.md for the data shape.
+  showing its next trip — the stop chain over the matching time chain.
+  See trmnl/README.md for the data shape.
 {% endcomment %}
 
 <div class="layout">
@@ -11,14 +11,13 @@
       <div class="column">
         <span class="title">{{ sec.title }}</span>
 
-        {% if sec.groups.size > 0 %}
-          {% assign g = sec.groups.first %}
+        {% if sec.trips.size > 0 %}
+          {% assign trip = sec.trips.first %}
           <div class="item">
             <div class="content">
-              <span class="value value--xlarge value--tnums">{{ g.time }}</span>
-              {% for s in g.sailings %}
-                <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}{% if s.stop != blank %} &middot; {{ s.stop }}{% endif %}</span>
-              {% endfor %}
+              <span class="label label--small">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.name }}{% endfor %}</span>
+              <span class="value value--xlarge value--tnums" data-value-fit="true">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.time }}{% endfor %}</span>
+              <span class="label label--small">{{ trip.vehicle }}</span>
             </div>
           </div>
         {% else %}

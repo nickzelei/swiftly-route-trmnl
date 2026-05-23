@@ -23,32 +23,26 @@ interface Env {
   PROXY_SECRET?: string;
 }
 
-interface Sailing {
-  kind: "arrival" | "departure";
+// One stop on a trip: where the ferry calls and when.
+interface TripStop {
+  name: string;
+  time: string;
+  mins: number;
+}
+
+// One logical sailing: a vessel running an ordered chain of stops. The
+// templates render this as a single row (stop names, then times).
+interface Trip {
   vehicle: string;
-  stop: string;
+  stops: TripStop[];
 }
 
-// One Sailing as collected from the feed, before same-time grouping.
-interface Arrival extends Sailing {
-  mins: number;
-  time: string;
-}
-
-// Sailings that share a clock time, so the display can show the time once
-// with each vehicle listed under it.
-interface TimeGroup {
-  time: string;
-  mins: number;
-  sailings: Sailing[];
-}
-
-// One direction of the route, with its upcoming sailings. The route's two
+// One direction of the route, with its upcoming trips. The route's two
 // directions become the two display columns/rows in the TRMNL templates.
 interface Section {
   title: string;
   direction_id: string;
-  groups: TimeGroup[];
+  trips: Trip[];
 }
 
 const SWIFTLY_BASE = "https://api.goswift.ly";
@@ -66,29 +60,6 @@ function jsonResponse(body: unknown, status = 200): Response {
     status,
     headers: { "content-type": "application/json; charset=utf-8" },
   });
-}
-
-// Collapse sailings sharing a clock time into one group. Input is assumed
-// sorted soonest-first, so groups come out in that order too.
-function groupByTime(list: Arrival[]): TimeGroup[] {
-  const byTime = new Map<string, TimeGroup>();
-  for (const a of list) {
-    let g = byTime.get(a.time);
-    if (!g) {
-      g = { time: a.time, mins: a.mins, sailings: [] };
-      byTime.set(a.time, g);
-    }
-    g.sailings.push({ kind: a.kind, vehicle: a.vehicle, stop: a.stop });
-  }
-  // Arrivals before departures, so a shared-time group always reads the same
-  // regardless of the order the feed happened to list them in.
-  const groups = [...byTime.values()];
-  for (const g of groups) {
-    g.sailings.sort((a, b) =>
-      a.kind === b.kind ? 0 : a.kind === "arrival" ? -1 : 1,
-    );
-  }
-  return groups;
 }
 
 function clockTime(epochMs: number, timeZone: string): string {
@@ -206,9 +177,9 @@ export default {
       }
     }
 
-    // Bucket sailings by the trip's direction id; only directions the route
-    // info knows about get a bucket (and therefore a display section).
-    const byDirection = new Map<string, Arrival[]>();
+    // Bucket trips by their direction id; only directions the route info
+    // knows about get a bucket (and therefore a display section).
+    const byDirection = new Map<string, Trip[]>();
     for (const dir of directions) byDirection.set(String(pick(dir, "id") ?? ""), []);
 
     const now = Math.floor(Date.now() / 1000);
@@ -224,6 +195,9 @@ export default {
       const vehicle = pick(tu, "vehicle") ?? {};
       const vehicleId = String(pick(vehicle, "id") ?? "");
 
+      // Each feed entity is one trip: collect its stops, in feed order, into
+      // a single chain the templates render as one row.
+      const stops: TripStop[] = [];
       for (const stu of pick(tu, "stopTimeUpdate", "stop_time_update") ?? []) {
         const stopId = String(pick(stu, "stopId", "stop_id") ?? "");
 
@@ -234,28 +208,29 @@ export default {
         const epoch = arrivalTime ?? departureTime;
         if (!epoch) continue;
 
-        const mins = Math.round((Number(epoch) - now) / 60);
-        if (mins < 0) continue; // already happened
-
-        bucket.push({
-          vehicle: vehicleId,
-          stop: stopNames.get(stopId) || stopId,
-          kind: arrivalTime ? "arrival" : "departure",
-          mins,
+        stops.push({
+          name: stopNames.get(stopId) || stopId,
           time: clockTime(Number(epoch) * 1000, tz),
+          mins: Math.round((Number(epoch) - now) / 60),
         });
       }
+
+      // Drop trips whose origin departure has already passed (no longer
+      // catchable) and trips with no timed stops at all.
+      if (stops.length === 0 || stops[0].mins < 0) continue;
+
+      bucket.push({ vehicle: vehicleId, stops });
     }
 
     // One section per direction, in the route info's direction order.
     const sections: Section[] = directions.map((dir) => {
       const id = String(pick(dir, "id") ?? "");
-      const list = byDirection.get(id) ?? [];
-      list.sort((a, b) => a.mins - b.mins);
+      const trips = byDirection.get(id) ?? [];
+      trips.sort((a, b) => a.stops[0].mins - b.stops[0].mins);
       return {
         title: String(pick(dir, "title") ?? `Direction ${id}`),
         direction_id: id,
-        groups: groupByTime(list),
+        trips,
       };
     });
 

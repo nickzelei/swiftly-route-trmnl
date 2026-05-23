@@ -24,13 +24,13 @@ jobs:
 
   # Deploy the templates + settings.yml to TRMNL on merge to main.
   # Requires the TRMNL_API_KEY repo secret and an `id:` in src/settings.yml.
-  push:
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - uses: jdx/mise-action@v2
-      - run: trmnlp push --force
-        env:
-          TRMNL_API_KEY: ${{ secrets.TRMNL_API_KEY }}
+  # push:
+  #   needs: build
+  #   if: github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v6
+  #     - uses: jdx/mise-action@v2
+  #     - run: trmnlp push --force
+  #       env:
+  #         TRMNL_API_KEY: ${{ secrets.TRMNL_API_KEY }}

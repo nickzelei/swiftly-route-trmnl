@@ -1,7 +1,7 @@
 {% comment %}
   TRMNL "Half Vertical" layout (400x480). A mobile-style column stack: the
-  route's two directions stacked top/bottom, each shows up to 3 sailing time
-  groups. See trmnl/README.md.
+  route's two directions stacked top/bottom, each shows up to 2 trips — a
+  stop chain over the matching time chain. See trmnl/README.md.
 {% endcomment %}
 
 <div class="layout">
@@ -11,14 +11,13 @@
       <div class="flex flex--col gap--small w--full">
         <span class="title">{{ sec.title }}</span>
 
-        {% if sec.groups.size > 0 %}
-          {% for g in sec.groups limit: 3 %}
+        {% if sec.trips.size > 0 %}
+          {% for trip in sec.trips limit: 2 %}
             <div class="item">
               <div class="content">
-                <span class="value value--large value--tnums">{{ g.time }}</span>
-                {% for s in g.sailings %}
-                  <span class="label label--small">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}{% if s.stop != blank %} &middot; {{ s.stop }}{% endif %}</span>
-                {% endfor %}
+                <span class="label label--small">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.name }}{% endfor %}</span>
+                <span class="value value--tnums" data-value-fit="true">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.time }}{% endfor %}</span>
+                <span class="label label--small">{{ trip.vehicle }}</span>
               </div>
             </div>
           {% endfor %}

@@ -84,12 +84,12 @@ Authorization: Bearer {{api_key}}
     {
       "title": "To San Francisco Ferry Building Gate F",
       "direction_id": "1",
-      "groups": [
+      "trips": [
         {
-          "time": "7:11 PM",
-          "mins": 12,
-          "sailings": [
-            { "kind": "departure", "vehicle": "Cetus", "stop": "Alameda Seaplane Lagoon Ferry Terminal" }
+          "vehicle": "Cetus",
+          "stops": [
+            { "name": "Alameda Seaplane Lagoon Ferry Terminal", "time": "7:11 PM", "mins": 12 },
+            { "name": "San Francisco Ferry Building Gate F", "time": "7:27 PM", "mins": 28 }
           ]
         }
       ]
@@ -100,12 +100,12 @@ Authorization: Bearer {{api_key}}
 
 `sections` has one entry per route **direction**, in the order Swiftly lists
 them; `title` is Swiftly's direction title. Each direction holds a list of
-**time groups**, sorted soonest-first — every vessel sailing at the same clock
-time shares one group, so the display shows the time once with each vessel
-under it. `kind` is `"arrival"` or `"departure"` (the feed often carries only
-one per stop, so the Worker reports whichever it gets). `mins` is the countdown
-at fetch time; the templates show `time`, which does not go stale between
-TRMNL refreshes.
+**trips**, sorted soonest-first by origin departure. A trip is one logical
+sailing: a `vehicle` and an ordered `stops` chain — origin, any intermediate
+stops, destination — each carrying its `name` (which includes the gate) and
+`time`. `mins` is the countdown at fetch time; the templates show `time`,
+which does not go stale between TRMNL refreshes. Trips whose origin departure
+has already passed are dropped.
 
 On a bad request the Worker still returns `{ "error": "...", "sections": [] }`
 so the template can render a message instead of breaking.

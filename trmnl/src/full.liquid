@@ -1,23 +1,23 @@
 {% comment %}
   TRMNL "Full" layout (800x480). Renders the JSON the Cloudflare Worker
-  returns; see trmnl/README.md for the shape. Each route direction is a column.
+  returns; see trmnl/README.md for the shape. Each route direction is a column;
+  each trip is one row — its stop chain over the matching time chain.
 {% endcomment %}
 
 <div class="layout">
   {% if sections.size > 0 %}
   <div class="columns">
     {% for sec in sections limit: 2 %}
-      <div class="column">
-        <span class="title">{{ sec.title }}</span>
+      <div class="column gap--xlarge">
+        <span class="title title--medium">{{ sec.title }}</span>
 
-        {% if sec.groups.size > 0 %}
-          {% for g in sec.groups limit: 4 %}
+        {% if sec.trips.size > 0 %}
+          {% for trip in sec.trips limit: 4 %}
             <div class="item">
-              <div class="content">
-                <span class="value value--xxlarge value--tnums">{{ g.time }}</span>
-                {% for s in g.sailings %}
-                  <span class="label label--medium">{% if s.kind == "departure" %}DEPARTS{% else %}ARRIVES{% endif %} &middot; {{ s.vehicle }}{% if s.stop != blank %} &middot; {{ s.stop }}{% endif %}</span>
-                {% endfor %}
+              <div class="content gap--small">
+                <span class="label label--large">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.name }}{% endfor %}</span>
+                <span class="value value--mega value--tnums" data-value-fit="true">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.time }}{% endfor %}</span>
+                <span class="label label--large">{{ trip.vehicle }}</span>
               </div>
             </div>
           {% endfor %}
