@@ -1,0 +1,12 @@
+{
+  "name": "trmnl-screenshots",
+  "private": true,
+  "description": "Headless-Chromium screenshot tooling for the TRMNL Liquid templates. Not part of the plugin runtime — trmnl/ is otherwise a trmnlp (Ruby) project; this exists only to render docs/screenshots/*.png from the built HTML in _build/.",
+  "type": "module",
+  "scripts": {
+    "screenshots": "node scripts/screenshots.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  }
+}
