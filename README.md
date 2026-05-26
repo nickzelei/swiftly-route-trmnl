@@ -5,7 +5,7 @@ arrivals for any Swiftly agency + route. Built for the SF Bay Ferry Alameda
 Seaplane route (agency `sfbay-ferry`, route `19417` — the default smoketest
 target), but the agency and route are TRMNL plugin inputs, so one install of
 this recipe can be pointed at any route on any Swiftly agency you have an API
-key for.
+key for. Currently only optimized for TRMNL X resolutions.
 
 ## How it works
 
@@ -53,7 +53,7 @@ mise install        # run `mise trust` first if prompted
 
 With mise activated in your shell, `node` / `npm` / `npx` / `uv` / `trmnlp`
 resolve automatically. If it is not activated, prefix every command below
-with `mise exec -- `.
+with `mise exec --`.
 
 ### 2. Deploy the Worker
 
