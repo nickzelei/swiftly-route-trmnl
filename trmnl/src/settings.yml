@@ -25,7 +25,7 @@ custom_fields:
   placeholder: https://example.com
   group: "Proxy Connection"
 - keyname: api_key
-  field_type: string
+  field_type: password
   name: Proxy API Key
   description: The API key used to authenticate with your Swiftly proxy (not the API key provided by Swiftly!)
   group: "Proxy Connection"
