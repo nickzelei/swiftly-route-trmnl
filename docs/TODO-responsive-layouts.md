@@ -1,5 +1,34 @@
 # TODO: responsive layouts across all TRMNL devices
 
+## Publication status
+
+This is intentionally deferred to a dedicated responsiveness session. The
+public-registry automated review reported that no `lg:` or `portrait:`
+classes are present and asked for TRMNL X landscape/portrait verification.
+Do not add token responsive classes just to silence that warning: complete
+the visual pass below and use responsive utilities only where they solve an
+observed layout difference.
+
+Treat this as the remaining pre-publication design task. The other automated
+review items (image dithering, clickable form links, and moving outbound
+requests from the transform into polling URLs) were handled separately.
+
+### Acceptance criteria for the dedicated session
+
+- Render and visually inspect all four layouts on TRMNL X in landscape
+  (1040×780 CSS pixels) and portrait (780×1040).
+- Render and visually inspect all four layouts on TRMNL OG/OG Plus
+  (800×480), including every half/quadrant layout crop.
+- Exercise the existing busy fixture: two directions, multiple trips, long
+  stop names, and a three-stop chain.
+- No clipped titles, trips, stop chains, times, or title-bar content.
+- Add meaningful `lg:` and/or `portrait:` framework utilities where the
+  rendered evidence calls for them.
+- Extend `scripts/screenshots.mjs` to keep the tested device/orientation
+  matrix as a repeatable regression check.
+- Regenerate the committed screenshots and run `mise run lint` plus
+  `mise run build` before considering the plugin ready to publish.
+
 ## Problem
 
 The Liquid templates were sized for the original TRMNL (`og_plus`,

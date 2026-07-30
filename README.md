@@ -28,15 +28,18 @@ respond before you can install the plugin below.
 Swiftly API  →  TRMNL polling + serverless transform  →  Liquid templates
 ```
 
-TRMNL's **Polling** strategy fetches a URL and hands the raw JSON to a
+TRMNL's **Polling** strategy fetches one or more URLs and hands the raw JSON to a
 **serverless transform** — a script TRMNL runs server-side (locally via
 `trmnlp` in dev, or on TRMNL's hosted microVM daemon in production) — before
 Liquid ever sees it. The Swiftly `gtfs-rt-trip-updates` feed is agency-wide
-and large, so polling hits it directly and `src/transform.js` (compiled from
-the type-safe `src/transform.ts`) does the rest: two more Swiftly
-calls (agency info for the timezone, verbose route info for the route's
-directions + stop names), buckets the feed's sailings by direction, and
-returns a small sculpted payload the Liquid templates render directly:
+and large, so TRMNL polls it directly alongside agency info (for the
+timezone) and verbose route info (for route directions and stop names).
+`src/transform.js` (compiled from the type-safe `src/transform.ts`) consumes
+those three already-fetched responses as `IDX_0`, `IDX_1`, and `IDX_2`,
+buckets the feed's sailings by direction, and returns a small sculpted
+payload the Liquid templates render directly. The transform performs no
+network requests, keeping upstream latency outside its five-second runtime
+limit:
 
 ```json
 {
@@ -89,7 +92,7 @@ The plugin itself lives at the repo root (it's the one real deployable here):
 | `src/half_horizontal.liquid` | Half Horizontal (800×240) — next trip per direction |
 | `src/half_vertical.liquid` | Half Vertical (400×480) — up to 2 trips per direction, stacked |
 | `src/quadrant.liquid` | Quadrant (400×240) — next trip per direction, stacked |
-| `src/settings.yml` | Plugin config: strategy, polling URL, form fields |
+| `src/settings.yml` | Plugin config: strategy, polling URLs, form fields |
 | `src/transform.ts` | The type-safe source for `src/transform.js` — edit this, then `mise run build-transform` |
 | `src/transform.js` | The serverless transform trmnlp/TRMNL execute. **Generated** from `transform.ts` — don't edit directly |
 | `.trmnlp.yml` | Dev-server config + static preview data (not uploaded to TRMNL) |
@@ -228,16 +231,15 @@ key needed.
 
 To preview against **live** data instead, comment out the `variables:` block
 in `.trmnlp.yml` and set `SWIFTLY_API_KEY` in a repo-root `.env` (mise loads
-it — see [`.env.example`](.env.example)). `polling_url` hits Swiftly's
-trip-updates feed directly and `src/transform.js` (make sure it's built —
-`mise run build-transform`) makes the rest of the calls.
+it — see [`.env.example`](.env.example)). The newline-separated `polling_url`
+value hits all three Swiftly endpoints directly; `src/transform.js` (make
+sure it's built — `mise run build-transform`) reshapes their responses.
 
 One local-only quirk: `trmnlp` resolves `.trmnlp.yml`'s `{{ env.X }}`
 templating for `polling_url`/`polling_headers`, but hands the transform the
-*raw* templated string for `custom_fields_values` — so `src/transform.ts` has
-a `process.env.SWIFTLY_API_KEY` fallback for exactly this case. Real installs
-never hit that branch: TRMNL passes the transform the plain value installers
-type into the form field, not a template.
+*raw* templated string for `custom_fields_values`. This is harmless now that
+the transform does not use the key for its own requests. Real installs
+receive the plain value entered by the installer.
 
 ## Key facts
 
@@ -249,10 +251,10 @@ type into the form field, not a template.
 - Swiftly auth is an `Authorization: <api-key>` header — the raw key, no
   scheme.
 - There's no caching layer in front of Swiftly (the old self-hosted Worker
-  had one, before this repo moved to TRMNL's serverless transforms) — each
-  poll cycle costs three Swiftly calls per installed plugin instance. At the
-  default 15-minute `refresh_interval` this is a light load; worth revisiting
-  if Swiftly ever pushes back on request volume.
+  had one, before this repo moved to TRMNL polling + serverless transforms) —
+  each poll cycle costs three Swiftly calls per installed plugin instance. At
+  the default 15-minute `refresh_interval` this is a light load; worth
+  revisiting if Swiftly ever pushes back on request volume.
 
 ## Deploying
 

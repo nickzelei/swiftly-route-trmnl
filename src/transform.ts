@@ -1,21 +1,20 @@
 /**
  * Swiftly -> TRMNL serverless transform.
  *
- * TRMNL polls Swiftly's gtfs-rt-trip-updates feed directly (see
- * src/settings.yml's polling_url/polling_headers); this transform runs
- * server-side afterward (locally via trmnlp, or on TRMNL's hosted microVM
- * daemon in production) and does the rest: fetches agency info (for the
- * timezone) and verbose route info (for the route's directions + stop
- * names), then buckets the polled feed's sailings by direction and returns
- * the small JSON payload the Liquid templates render directly.
+ * TRMNL polls three Swiftly endpoints directly (see src/settings.yml's
+ * newline-separated polling_url): trip updates, agency info, and verbose
+ * route info. This transform runs server-side afterward (locally via trmnlp,
+ * or on TRMNL's hosted microVM daemon in production), buckets the already-
+ * polled feed's sailings by direction, and returns the small JSON payload
+ * the Liquid templates render directly. It performs no network requests, so
+ * Swiftly latency does not consume the transform's five-second runtime limit.
  *
  * This is the TypeScript source of truth — it is compiled (not bundled; it
  * has no imports, so tsc's output stays a plain global-scope script) to
  * src/transform.js, the file trmnlp/TRMNL actually execute. Run `npm run
  * build:transform` after editing this file. See README.md.
  *
- * Runs in a sandboxed Node subprocess with no npm install step, so this
- * file must not import anything outside Node/JS builtins.
+ * Runs in a sandboxed Node subprocess with no npm install step.
  */
 
 // One stop on a trip: where the ferry calls and when.
@@ -46,16 +45,22 @@ interface Section {
 interface CustomFieldsValues {
   agency: string;
   route: string;
-  swiftly_api_key: string;
 }
 
-// The polled response (Swiftly's gtfs-rt-trip-updates feed, a JSON object)
-// merged at the top level, plus the trmnl namespace the transform pipeline
-// always adds. Feed entities are typed loosely — the feed tolerates
-// camelCase/snake_case keys, so pick() reads them defensively rather than
-// the type system enforcing a shape Swiftly doesn't guarantee.
-interface TransformInput {
+interface TripUpdatesFeed {
+  header?: unknown;
   entity?: unknown[];
+}
+
+// Multiple polling URLs arrive as IDX_0, IDX_1, and IDX_2 in declaration
+// order, plus the trmnl namespace the transform pipeline always adds. Feed
+// entities are typed loosely — the feed tolerates camelCase/snake_case keys,
+// so pick() reads them defensively rather than the type system enforcing a
+// shape Swiftly doesn't guarantee.
+interface TransformInput {
+  IDX_0?: TripUpdatesFeed;
+  IDX_1?: unknown;
+  IDX_2?: unknown;
   trmnl: {
     plugin_settings: {
       custom_fields_values: CustomFieldsValues;
@@ -77,7 +82,6 @@ interface ErrorOutput {
   sections: [];
 }
 
-const SWIFTLY_BASE = "https://api.goswift.ly";
 const DEFAULT_TZ = "America/Los_Angeles";
 
 // Tolerate camelCase / snake_case keys in the JSON feed.
@@ -93,64 +97,6 @@ function clockTime(epochMs: number, timeZone: string): string {
     hour: "numeric",
     minute: "2-digit",
   });
-}
-
-function swiftlyFetch(url: string, key: string): Promise<Response> {
-  return fetch(url, { headers: { Authorization: key } });
-}
-
-class SwiftlyError extends Error {
-  detail?: string;
-  constructor(message: string, detail?: string) {
-    super(message);
-    this.detail = detail;
-  }
-}
-
-// Issue the agency-info and verbose route-info calls in parallel (the
-// trip-updates feed is already in `input` — TRMNL polled it directly).
-async function fetchSwiftlyData(
-  agency: string,
-  routeId: string,
-  key: string,
-): Promise<{ agencyData: any; routeData: any }> {
-  const ag = encodeURIComponent(agency);
-  const agencyUrl = `${SWIFTLY_BASE}/info/${ag}?format=json`;
-  const routeUrl =
-    `${SWIFTLY_BASE}/info/${ag}/routes` +
-    `?route=${encodeURIComponent(routeId)}&verbose=true&format=json`;
-
-  let agencyResp: Response, routeResp: Response;
-  try {
-    [agencyResp, routeResp] = await Promise.all([
-      swiftlyFetch(agencyUrl, key),
-      swiftlyFetch(routeUrl, key),
-    ]);
-  } catch (e) {
-    throw new SwiftlyError("fetch failed", String(e));
-  }
-
-  for (const [name, resp] of [
-    ["agency", agencyResp],
-    ["route", routeResp],
-  ] as const) {
-    if (!resp.ok) {
-      const msg =
-        resp.status === 401 || resp.status === 403
-          ? "Swiftly rejected the API key for this agency"
-          : name === "route" && resp.status === 400
-            ? `route ${routeId} not found for agency ${agency}`
-            : `swiftly ${name} request failed (${resp.status})`;
-      throw new SwiftlyError(msg, await resp.text());
-    }
-  }
-
-  try {
-    const [agencyData, routeData] = await Promise.all([agencyResp.json(), routeResp.json()]);
-    return { agencyData, routeData };
-  } catch (e) {
-    throw new SwiftlyError("bad JSON from Swiftly", String(e));
-  }
 }
 
 // stop id -> human name, gathered from every direction's stop list. The
@@ -211,7 +157,7 @@ function buildTrip(
 // and emit one section per direction in the route info's direction order.
 function buildSections(
   directions: any[],
-  feed: TransformInput,
+  feed: TripUpdatesFeed,
   routeId: string,
   stopNames: Map<string, string>,
   now: number,
@@ -246,39 +192,36 @@ async function run(input: TransformInput): Promise<SuccessOutput | ErrorOutput> 
   // preview — and the transform's return value replaces the data wholesale,
   // not merges with it. So without this, the offline fixture would get
   // silently overwritten by a live (or failing) Swiftly call. A real
-  // Swiftly feed response never has a `sections` array, so its presence
+  // multi-URL Swiftly response never has a `sections` array, so its presence
   // unambiguously means "static fixture" — pass it through untouched.
   if (Array.isArray((input as any).sections)) return input as unknown as SuccessOutput;
 
   const fields = input.trmnl?.plugin_settings?.custom_fields_values;
   const agency = (fields?.agency ?? "").trim();
   const routeId = String(fields?.route ?? "").trim();
-  // trmnlp's local dev-preview resolves Liquid env placeholders in
-  // polling_url/polling_headers, but not in the raw custom-field values it
-  // hands to this transform. Detect an unresolved placeholder by constructing
-  // Liquid's opening delimiter without spelling it literally: TRMNL's UI
-  // parses transform source as Liquid and would otherwise reject this script.
-  // Real installs never hit this branch because TRMNL stores the plain value
-  // installers type into the form field.
-  const rawKey = fields?.swiftly_api_key ?? "";
-  const liquidOpeningDelimiter = "{" + "{";
-  const swiftlyKey = rawKey.includes(liquidOpeningDelimiter)
-    ? process.env.SWIFTLY_API_KEY ?? ""
-    : rawKey;
 
-  const missing = [!agency && "agency", !routeId && "route", !swiftlyKey && "swiftly_api_key"].filter(
-    Boolean,
-  );
+  const missing = [!agency && "agency", !routeId && "route"].filter(Boolean);
   if (missing.length) {
     return { error: `missing required input: ${missing.join(", ")}`, sections: [] };
   }
 
-  let agencyData: any, routeData: any;
-  try {
-    ({ agencyData, routeData } = await fetchSwiftlyData(agency, routeId, swiftlyKey));
-  } catch (e) {
-    if (e instanceof SwiftlyError) return { error: e.message, detail: e.detail, sections: [] };
-    throw e;
+  const feed = input.IDX_0;
+  const agencyData = input.IDX_1;
+  const routeData = input.IDX_2;
+
+  if (!feed || !pick(feed, "header")) {
+    return {
+      error: "Swiftly trip updates unavailable",
+      detail: "Check the Swiftly API key and agency.",
+      sections: [],
+    };
+  }
+  if (!pick(agencyData, "data")) {
+    return {
+      error: "Swiftly agency info unavailable",
+      detail: "Check the Swiftly API key and agency.",
+      sections: [],
+    };
   }
 
   const tz = String(pick(pick(agencyData, "data") ?? {}, "timezone") || DEFAULT_TZ);
@@ -292,7 +235,7 @@ async function run(input: TransformInput): Promise<SuccessOutput | ErrorOutput> 
 
   const stopNames = buildStopNames(directions);
   const now = Math.floor(Date.now() / 1000);
-  const sections = buildSections(directions, input, routeId, stopNames, now, tz);
+  const sections = buildSections(directions, feed, routeId, stopNames, now, tz);
 
   return {
     agency,

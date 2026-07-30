@@ -23,22 +23,25 @@ discover route/stop ids:
 Swiftly API  →  TRMNL polling + serverless transform (root)  →  Liquid templates (root)
 ```
 
-**Why a transform exists** — TRMNL's "Polling" strategy fetches a URL and
+**Why a transform exists** — TRMNL's "Polling" strategy fetches one or more URLs and
 hands the raw JSON to a **serverless transform** (a script TRMNL runs
 server-side — locally via `trmnlp` in dev, on TRMNL's hosted microVM daemon
 in production) before Liquid ever sees it. The Swiftly `gtfs-rt-trip-updates`
-feed is agency-wide and large, so polling hits it directly and the transform
-does the rest: two more Swiftly calls, then filtering + bucketing into a
-small sculpted JSON payload Liquid can render directly. This replaced an
+feed is agency-wide and large, so polling hits it directly along with the
+agency-info and verbose-route-info endpoints. The three responses arrive at
+the transform as `IDX_0`, `IDX_1`, and `IDX_2`; the transform performs only
+filtering + bucketing into a small sculpted JSON payload Liquid can render
+directly. Keeping all network requests in polling prevents Swiftly latency
+from consuming the transform's five-second runtime limit. This replaced an
 earlier self-hosted Cloudflare Worker (see git history) once TRMNL added
-serverless transforms — a transform can make its own outbound HTTP calls, so
-there's no need for a separately-hosted backend anymore. The plugin also used
-to live in a `trmnl/` subdirectory (see git history) — it was collapsed into
-the repo root once the Worker's removal left it as the only real deployable.
+serverless transforms and multi-URL polling, so there's no need for a
+separately-hosted backend anymore. The plugin also used to live in a `trmnl/`
+subdirectory (see git history) — it was collapsed into the repo root once the
+Worker's removal left it as the only real deployable.
 
 - `src/` holds one Liquid template per TRMNL layout (`full`,
   `half_horizontal`, `half_vertical`, `quadrant`), `settings.yml` (plugin
-  config — polling URL/headers, form fields, `serverless_language: node`),
+  config — polling URLs/headers, form fields, `serverless_language: node`),
   `transform.ts` (the type-safe transform source — edit this), and
   `transform.js` (**generated** from `transform.ts`, see below — don't edit
   directly). `.trmnlp.yml` is the dev-server config and carries a static
@@ -49,11 +52,13 @@ the repo root once the Worker's removal left it as the only real deployable.
   global-scope script, which is required since the transform runs standalone
   with no npm install step). It reads
   `input.trmnl.plugin_settings.custom_fields_values` for
-  `agency`/`route`/`swiftly_api_key`, makes the agency-info +
-  verbose-route-info Swiftly calls, buckets the already-polled trip-updates
-  feed (`input.entity`) by the trip's `directionId`, and returns one
-  `section` per route direction. Tolerates camelCase/snake_case feed keys via
-  `pick()`. `transform.ts` used to live in a separate top-level
+  `agency`/`route`, reads the three already-polled Swiftly responses
+  (`input.IDX_0` trip updates, `input.IDX_1` agency info, `input.IDX_2`
+  verbose route info), buckets trip updates by the trip's `directionId`, and
+  returns one `section` per route direction. It performs no network requests
+  and never reads the API key; the key is used only by `polling_headers`.
+  Tolerates camelCase/snake_case feed keys via `pick()`. `transform.ts` used
+  to live in a separate top-level
   `transform-src/` directory (see git history) — colocated into `src/` since
   trmnlp forces the executed file to be literally named `src/transform.js`
   regardless (its subprocess wrapper always writes a `.js` tempfile and
@@ -180,10 +185,9 @@ default; comment it out to poll live data, which needs `SWIFTLY_API_KEY` in
 the environment — mise loads it from a gitignored root `.env` (see
 `.env.example`). trmnlp resolves `.trmnlp.yml`'s `{{ env.X }}` templating for
 `polling_url`/`polling_headers`, but hands the transform the *raw* templated
-string for `custom_fields_values` — a local-only quirk, which is why
-`src/transform.ts` has a `process.env.SWIFTLY_API_KEY` fallback for exactly
-this case. Real installs never hit that branch: TRMNL passes the
-transform the plain value installers type into the form field, not a
+string for `custom_fields_values` — a harmless local-only quirk because the
+transform does not perform network requests with the key. Real installs pass
+the transform the plain value installers type into the form field, not a
 template. `.github/workflows/trmnl.yml` builds the transform and runs
 `trmnlp lint`/`build` on every PR; the `push` job is present but commented
 out (enable by uncommenting + setting the `TRMNL_API_KEY` repo secret).
@@ -204,11 +208,9 @@ plan to make templates work across every device in `usetrmnl.com/api/models`.
   trmnlp sends the transform directly to a Node subprocess and only
   Liquid-parses the layout files, while the incompatible parsing happens
   after upload on TRMNL's backend.
-- `SWIFTLY_BASE` and `DEFAULT_TZ` in `src/transform.ts` are
-  intentionally hardcoded, not config gaps: there's one Swiftly API for
-  everyone, and Swiftly's spec marks agency `timezone` as required, so the
-  default is an unreachable-in-practice fallback. Don't add form fields for
-  either.
+- `DEFAULT_TZ` in `src/transform.ts` is intentionally hardcoded, not a config
+  gap: Swiftly's spec marks agency `timezone` as required, so the default is
+  an unreachable-in-practice fallback. Don't add a form field for it.
 - The transform groups sailings by the route's **direction** (from verbose
   route info), not by stop — so multi-gate terminals (e.g. the SF Ferry
   Building's gates E/F/G) and multi-stop routes need no special handling.
