@@ -10,36 +10,56 @@ polling_url: "{{ api_url }}?agency={{ agency }}&route={{ route }}"
 polling_headers: Authorization=Bearer {{ api_key }}
 polling_body: ''
 id: 310138
+oauth_enabled: 'false'
+oauth_pkce_enabled: 'no'
+oauth_authorize_url: ''
+oauth_token_url: ''
+oauth_scopes: ''
+oauth_scope_separator: ''
+oauth_refresh_url: ''
+oauth_auth_params: ''
+oauth_token_headers: ''
+oauth_token_site: ''
+oauth_token_params: ''
+oauth_token_request_auth_method: ''
+oauth_body_format: ''
+oauth_token_response_metadata: ''
+oauth_authorization_method: ''
+oauth_refresh_params: ''
+oauth_token_field_name: ''
+oauth_expiry_field_name: ''
+oauth_expiry_strategy: ''
+oauth_fixed_expiry_ms: ''
 custom_fields:
 - keyname: author_bio
   name: About This Plugin
   field_type: author_bio
-  description: "Shows live arrival times for any Swiftly-powered transit agency and route. This plugin is self-hosted: you must deploy your own proxy (Github provides Cloudflare Worker example) and provide your own Swiftly API key before it can pull data. See the GitHub repo for setup instructions."
+  description: 'Shows live arrival times for any Swiftly-powered transit agency and route. This plugin is self-hosted: you must deploy your own backend (Github provides Cloudflare Worker example) and provide your own Swiftly API key before it can pull data. See the GitHub repo for setup instructions.'
   category: travel,life
   email_address: nickzelei+trmnl@gmail.com
   github_url: https://github.com/nickzelei/swiftly-route-trmnl
 - keyname: api_url
   field_type: string
-  name: Proxy API Url
-  description: The API base url used to hit the proxy server that returns the expected Swiftly response.
+  name: Backend API Url
+  description: The API base url used to hit the backend server that returns the expected Swiftly response.
   placeholder: https://example.com
-  group: "Proxy Connection"
+  group: Backend Connection
 - keyname: api_key
   field_type: password
-  name: Proxy API Key
-  description: The API key used to authenticate with your Swiftly proxy (not the API key provided by Swiftly!)
-  group: "Proxy Connection"
+  name: Backend API Key
+  description: The API key used to authenticate with your Swiftly backend (not the API key provided by Swiftly!)
+  group: Backend Connection
 - keyname: agency
   field_type: string
   placeholder: sfbay-ferry
   name: Agency
   description: The agency key provided to you by Swiftly
-  group: "Route"
+  group: Route
 - keyname: route
   field_type: number
   placeholder: 19417
   name: Route
-  description: "The numeric route id you wish to poll. Not sure what it is? Run explore/explore_routes.py from the GitHub repo (linked above) with your Swiftly API key and agency to list every route id for your agency."
-  group: "Route"
+  description: The numeric route id you wish to poll. Not sure what it is? Run explore/explore_routes.py from the GitHub repo (linked above) with your Swiftly API key and agency to list every route id for your agency.
+  group: Route
 name: Swiftly
 refresh_interval: 15

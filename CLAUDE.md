@@ -16,11 +16,11 @@ target. Data originates from the Swiftly transit API.
 The repo is three stages of one pipeline, each in its own directory:
 
 ```
-Swiftly API  →  worker/ (Cloudflare Worker proxy)  →  TRMNL polling  →  trmnl/ (Liquid templates)
+Swiftly API  →  worker/ (Cloudflare Worker backend)  →  TRMNL polling  →  trmnl/ (Liquid templates)
 explore/ = throwaway tooling used to discover route/stop ids
 ```
 
-**Why the proxy exists** — TRMNL's "Polling" strategy fetches a URL and renders
+**Why the backend exists** — TRMNL's "Polling" strategy fetches a URL and renders
 the raw JSON; it does no filtering or transformation. The Swiftly
 `gtfs-rt-trip-updates` feed is agency-wide and large, and Swiftly forbids
 client-side requests to it. The Worker sits between: it fetches the feed,
@@ -28,7 +28,7 @@ filters to one route, and returns a small sculpted JSON payload TRMNL can
 render directly.
 
 - **`worker/`** — the Cloudflare Worker (TypeScript). `src/index.ts` is the
-  whole proxy. Per request it reads `agency`/`route` query params and uses the
+  whole backend. Per request it reads `agency`/`route` query params and uses the
   `SWIFTLY_API_KEY` secret, then makes three Swiftly calls: agency info (for the
   timezone), verbose route info (for the route's directions + stop names), and
   the trip-updates feed. It buckets sailings by the trip's `directionId` and
@@ -97,7 +97,7 @@ Node/npm come from `mise` — see the Toolchain section above.
 - `npm run deploy` — deploy to Cloudflare
 
 Secrets are set via `wrangler secret put` — never in `wrangler.toml`:
-`SWIFTLY_API_KEY` (required) and `PROXY_SECRET` (optional). `wrangler.toml` has
+`SWIFTLY_API_KEY` (required) and `BACKEND_SECRET` (optional). `wrangler.toml` has
 no `[vars]`.
 
 ### explore/ (run from `explore/`)
@@ -133,8 +133,8 @@ Credentials come from `explore/.env` (`SWIFTLY_API_KEY`, `AGENCY_KEY`).
   the plugin runtime.
 
 Preview uses the static sample in `.trmnlp.yml`'s `variables:` block by
-default; comment it out to poll live data, which needs `PROXY_URL` (and
-`PROXY_SECRET` if the Worker gates) in the environment — mise loads these from
+default; comment it out to poll live data, which needs `BACKEND_URL` (and
+`BACKEND_SECRET` if the Worker gates) in the environment — mise loads these from
 a gitignored root `.env` (see `.env.example`). `.github/workflows/trmnl.yml`
 builds on every PR and pushes to TRMNL on merge to `main`.
 

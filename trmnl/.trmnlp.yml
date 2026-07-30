@@ -11,10 +11,10 @@ watch:
 # checked into the repo. trmnlp has no .env support of its own; mise loads a
 # gitignored root .env into the environment instead (see .env.example).
 custom_fields:
-  api_url: "{{ env.PROXY_URL }}"
+  api_url: "{{ env.BACKEND_URL }}"
   agency: sfbay-ferry
   route: 19417
-  api_key: "{{ env.PROXY_SECRET }}"
+  api_key: "{{ env.BACKEND_SECRET }}"
 
 # Static preview payload — mirrors the JSON the Cloudflare Worker returns, so
 # previews render offline with no Swiftly API key. The top-level keys become
@@ -22,8 +22,8 @@ custom_fields:
 #
 # To preview against LIVE data instead: comment out this `variables:` block.
 # polling_url is `{{ api_url }}?agency=...&route=...`, so point the `api_url`
-# custom field above at either (a) your deployed Worker via the PROXY_URL env
-# var, or (b) a local Worker (`cd worker && npm run dev`) by setting PROXY_URL
+# custom field above at either (a) your deployed Worker via the BACKEND_URL env
+# var, or (b) a local Worker (`cd worker && npm run dev`) by setting BACKEND_URL
 # to `http://localhost:8787`.
 variables:
   agency: sfbay-ferry

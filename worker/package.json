@@ -1,5 +1,5 @@
 {
-  "name": "sfbayferry-trmnl-proxy",
+  "name": "sfbayferry-trmnl-backend",
   "private": true,
   "type": "module",
   "scripts": {

@@ -25,7 +25,7 @@ respond before you can deploy the Worker below.
 ## How it works
 
 ```
-Swiftly API  →  worker/  (Cloudflare Worker proxy)  →  TRMNL polling  →  trmnl/  (Liquid templates)
+Swiftly API  →  worker/  (Cloudflare Worker backend)  →  TRMNL polling  →  trmnl/  (Liquid templates)
 ```
 
 TRMNL's **Polling** strategy fetches a URL and renders the raw JSON; it does
@@ -39,13 +39,13 @@ The plugin is **single-tenant**: whoever uses the recipe self-hosts the
 Worker, which is why the Swiftly API key is a Worker secret (set once with
 `wrangler secret put`) rather than a TRMNL form field. The plugin form fields
 hold only the per-install bits: your Worker's URL, the agency, the route, and
-an optional proxy auth key.
+an optional backend auth key.
 
 ## Repo layout
 
 | Directory | Runtime | What's in it |
 |---|---|---|
-| [`worker/`](worker/README.md) | Node / TypeScript on Cloudflare Workers | The Swiftly proxy. One file (`src/index.ts`) — fetches agency info, route info, and the trip-updates feed, then returns one `section` per route direction. |
+| [`worker/`](worker/README.md) | Node / TypeScript on Cloudflare Workers | The Swiftly backend. One file (`src/index.ts`) — fetches agency info, route info, and the trip-updates feed, then returns one `section` per route direction. |
 | [`trmnl/`](trmnl/README.md) | Ruby / [`trmnlp`](https://github.com/usetrmnl/trmnlp) | The plugin itself: one Liquid template per TRMNL layout (`full`, `half_horizontal`, `half_vertical`, `quadrant`) plus `settings.yml`. |
 | [`explore/`](explore/README.md) | Python / `uv` | Scripts for poking the Swiftly API. `explore_routes.py` is how you find your agency's route id for step 2 below; `trip_updates.py` is handy for debugging the live feed. |
 | [`docs/`](docs/) | — | Reference material (the Swiftly OpenAPI spec). |
@@ -96,7 +96,7 @@ cd worker
 npm install
 npx wrangler login                          # one time
 npx wrangler secret put SWIFTLY_API_KEY     # required
-npx wrangler secret put PROXY_SECRET        # optional auth gate
+npx wrangler secret put BACKEND_SECRET      # optional auth gate
 npm run deploy
 ```
 
@@ -124,10 +124,10 @@ In the TRMNL dashboard, fill in the plugin form fields:
 
 | Field | Example |
 |---|---|
-| Proxy API Url | `https://swiftly-trmnl.<subdomain>.workers.dev` |
+| Backend API Url | `https://swiftly-trmnl.<subdomain>.workers.dev` |
 | Agency | `sfbay-ferry` |
 | Route | `19417` |
-| Proxy API Key | (matches the Worker's `PROXY_SECRET`, if set) |
+| Backend API Key | (matches the Worker's `BACKEND_SECRET`, if set) |
 
 ## Layouts
 
@@ -174,8 +174,8 @@ trmnlp serve
 
 By default `trmnlp serve` uses the static sample payload in
 `trmnl/.trmnlp.yml`, so previews work offline. To preview against a live
-Worker, comment out the `variables:` block and set `PROXY_URL` (and
-`PROXY_SECRET` if the Worker gates) in a repo-root `.env` — mise loads it.
+Worker, comment out the `variables:` block and set `BACKEND_URL` (and
+`BACKEND_SECRET` if the Worker gates) in a repo-root `.env` — mise loads it.
 See [`.env.example`](.env.example).
 
 ## Key facts

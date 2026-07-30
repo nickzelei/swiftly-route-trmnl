@@ -8,7 +8,7 @@ ruby = "3.4"
 # uses the same version.
 "gem:trmnl_preview" = "0.7.1"
 
-# Load PROXY_URL / PROXY_SECRET from a gitignored root .env so trmnlp can
+# Load BACKEND_URL / BACKEND_SECRET from a gitignored root .env so trmnlp can
 # preview against live data (it has no .env support of its own). Optional —
 # previews use the static payload in trmnl/.trmnlp.yml when these are unset.
 # See .env.example.

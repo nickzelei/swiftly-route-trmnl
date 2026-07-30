@@ -4,10 +4,10 @@
 # This is LOCAL DEV ONLY. `wrangler deploy` does not read it — upload
 # production secrets to Cloudflare with `wrangler secret put`:
 #   npx wrangler secret put SWIFTLY_API_KEY
-#   npx wrangler secret put PROXY_SECRET
+#   npx wrangler secret put BACKEND_SECRET
 
 # Required. Your Swiftly API key (account-scoped to specific agencies).
 SWIFTLY_API_KEY=
 
-# Optional. If set, callers must send `Authorization: Bearer <PROXY_SECRET>`.
-PROXY_SECRET=
+# Optional. If set, callers must send `Authorization: Bearer <BACKEND_SECRET>`.
+BACKEND_SECRET=

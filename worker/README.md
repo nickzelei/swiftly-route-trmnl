@@ -1,4 +1,4 @@
-# Swiftly → TRMNL proxy (Cloudflare Worker)
+# Swiftly → TRMNL backend (Cloudflare Worker)
 
 TRMNL's "Polling" strategy fetches a URL and renders the raw JSON — it does no
 filtering. The Swiftly trip-updates feed is agency-wide and Swiftly forbids
@@ -29,7 +29,7 @@ npx wrangler login                       # one time
 
 # Secrets (never put these in wrangler.toml):
 npx wrangler secret put SWIFTLY_API_KEY   # required; your Swiftly key
-npx wrangler secret put PROXY_SECRET      # optional; any random string
+npx wrangler secret put BACKEND_SECRET    # optional; any random string
 
 npm run deploy
 ```
@@ -64,9 +64,9 @@ URL: {{api_url}}?agency={{agency}}&route={{route}}
 
 Set the `api_url` field to your deployed Worker
 (`https://swiftly-trmnl.<subdomain>.workers.dev`) — keeping it a form field
-means each install supplies its own proxy rather than hard-coding one.
+means each install supplies its own backend rather than hard-coding one.
 
-If you set `PROXY_SECRET`, add an `api_key` form field and a polling header:
+If you set `BACKEND_SECRET`, add an `api_key` form field and a polling header:
 
 ```
 Authorization: Bearer {{api_key}}
@@ -113,7 +113,7 @@ so the template can render a message instead of breaking.
 ## Config
 
 - `wrangler.toml` has no `[vars]` — agency and route are per-request inputs.
-- Secrets: `SWIFTLY_API_KEY` (required), `PROXY_SECRET` (optional).
+- Secrets: `SWIFTLY_API_KEY` (required), `BACKEND_SECRET` (optional).
 - Swiftly responses are edge-cached (agency/route info 1 h, the live feed 25 s),
   so polling more often is harmless.
 

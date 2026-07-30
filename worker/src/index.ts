@@ -1,5 +1,5 @@
 /**
- * Swiftly -> TRMNL polling proxy.
+ * Swiftly -> TRMNL polling backend.
  *
  * TRMNL polls this Worker with an agency key and a route id supplied as plugin
  * inputs. It fetches Swiftly's agency-wide GTFS-rt trip-updates feed, filters
@@ -14,13 +14,13 @@
  *
  * Bindings (see wrangler.toml + README):
  *   SWIFTLY_API_KEY - secret; the Swiftly API key (wrangler secret put)
- *   PROXY_SECRET    - optional secret; if set, callers must send
- *                     `Authorization: Bearer <PROXY_SECRET>`
+ *   BACKEND_SECRET  - optional secret; if set, callers must send
+ *                     `Authorization: Bearer <BACKEND_SECRET>`
  */
 
 interface Env {
   SWIFTLY_API_KEY: string;
-  PROXY_SECRET?: string;
+  BACKEND_SECRET?: string;
 }
 
 // One stop on a trip: where the ferry calls and when.
@@ -103,13 +103,13 @@ class SwiftlyError extends Error {
   }
 }
 
-// Optional shared-secret gate via `Authorization: Bearer <PROXY_SECRET>`.
+// Optional shared-secret gate via `Authorization: Bearer <BACKEND_SECRET>`.
 // Returns a 401 Response when the caller fails the check, null otherwise.
 function authorize(request: Request, env: Env): Response | null {
-  if (!env.PROXY_SECRET) return null;
+  if (!env.BACKEND_SECRET) return null;
   const auth = request.headers.get("Authorization") ?? "";
   const bearer = auth.startsWith("Bearer ") ? auth.slice(7) : null;
-  if (bearer !== env.PROXY_SECRET) {
+  if (bearer !== env.BACKEND_SECRET) {
     return jsonResponse({ error: "unauthorized", sections: [] }, 401);
   }
   return null;
