@@ -253,14 +253,18 @@ async function run(input: TransformInput): Promise<SuccessOutput | ErrorOutput> 
   const fields = input.trmnl?.plugin_settings?.custom_fields_values;
   const agency = (fields?.agency ?? "").trim();
   const routeId = String(fields?.route ?? "").trim();
-  // trmnlp's local dev-preview resolves {{ env.X }} custom-field templates
-  // for polling_url/polling_headers, but not for the raw values it hands to
-  // this transform — so an unresolved `{{ env.SWIFTLY_API_KEY }}` string
-  // here (never a real key, which can't contain "{{") falls back to reading
-  // the env var directly. Real installs never hit this: TRMNL stores the
-  // plain value installers type into the form field.
+  // trmnlp's local dev-preview resolves Liquid env placeholders in
+  // polling_url/polling_headers, but not in the raw custom-field values it
+  // hands to this transform. Detect an unresolved placeholder by constructing
+  // Liquid's opening delimiter without spelling it literally: TRMNL's UI
+  // parses transform source as Liquid and would otherwise reject this script.
+  // Real installs never hit this branch because TRMNL stores the plain value
+  // installers type into the form field.
   const rawKey = fields?.swiftly_api_key ?? "";
-  const swiftlyKey = rawKey.includes("{{") ? process.env.SWIFTLY_API_KEY ?? "" : rawKey;
+  const liquidOpeningDelimiter = "{" + "{";
+  const swiftlyKey = rawKey.includes(liquidOpeningDelimiter)
+    ? process.env.SWIFTLY_API_KEY ?? ""
+    : rawKey;
 
   const missing = [!agency && "agency", !routeId && "route", !swiftlyKey && "swiftly_api_key"].filter(
     Boolean,
