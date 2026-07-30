@@ -90,7 +90,7 @@ The plugin itself lives at the repo root (it's the one real deployable here):
 | `src/half_vertical.liquid` | Half Vertical (400×480) — up to 2 trips per direction, stacked |
 | `src/quadrant.liquid` | Quadrant (400×240) — next trip per direction, stacked |
 | `src/settings.yml` | Plugin config: strategy, polling URL, form fields |
-| `src/transform.ts` | The type-safe source for `src/transform.js` — edit this, then `npm run build:transform` |
+| `src/transform.ts` | The type-safe source for `src/transform.js` — edit this, then `mise run build-transform` |
 | `src/transform.js` | The serverless transform trmnlp/TRMNL execute. **Generated** from `transform.ts` — don't edit directly |
 | `.trmnlp.yml` | Dev-server config + static preview data (not uploaded to TRMNL) |
 
@@ -121,6 +121,20 @@ With mise activated in your shell, `node` / `npm` / `npx` / `trmnlp` resolve
 automatically. If it is not activated, prefix every command below with
 `mise exec --`.
 
+`mise.toml` also defines the standard workflow as `[tasks]` — run any of
+these with `mise run <name>` (mise loads your `.env` for every task, so a
+`TRMNL_API_KEY` there is all `deploy` needs, no separate `trmnlp login`):
+
+| Task | What it does |
+|---|---|
+| `mise run build-transform` | Compiles `src/transform.ts` to `src/transform.js` |
+| `mise run typecheck-transform` | Typechecks `src/transform.ts` without emitting |
+| `mise run screenshots` | Renders `docs/screenshots/*.png` (rebuilds the transform first) |
+| `mise run lint` | `trmnlp lint` (rebuilds the transform first) |
+| `mise run build` | `trmnlp build` — static HTML in `_build/` (rebuilds the transform first) |
+| `mise run serve` | `trmnlp serve` — live-reloading preview (rebuilds the transform first) |
+| `mise run deploy` | `trmnlp push` — ships `src/` to TRMNL (rebuilds the transform first) |
+
 ### 2. Find your agency and route id
 
 You need a Swiftly API key (see [About Swiftly](#about-swiftly) above for how
@@ -145,11 +159,11 @@ Create a private plugin in TRMNL, copy its id into `src/settings.yml`, then:
 
 ```sh
 npm install
-npm run build:transform   # compiles src/transform.ts -> src/transform.js
-trmnlp login              # one time, or set TRMNL_API_KEY
-trmnlp push                # uploads src/ to TRMNL
+mise run deploy   # builds the transform, then trmnlp push
 ```
 
+`deploy` uses `TRMNL_API_KEY` from your `.env` if set, otherwise falls back to
+a stored `trmnlp login` session (one time: `trmnlp login`).
 `.github/workflows/trmnl.yml` does the same automatically on merge to `main`
 once the (currently commented-out) `push` job is enabled and `TRMNL_API_KEY`
 is set as a repo secret.
@@ -184,26 +198,27 @@ headless Chromium. To regenerate after changing a template:
 ```sh
 npm install                          # one time
 npx playwright install chromium      # one time
-npm run screenshots                  # writes docs/screenshots/*.png
+mise run screenshots                 # writes docs/screenshots/*.png
 ```
 
 ## Local development
 
 ```sh
 npm install
-npm run build:transform   # compiles src/transform.ts -> src/transform.js
-trmnlp serve               # live-reloading preview at http://localhost:4567
+mise run serve   # builds the transform, then trmnlp serve at http://localhost:4567
 ```
 
-Editing `src/transform.ts` needs a manual `npm run build:transform` before it
-takes effect — `trmnlp serve` doesn't know about the `.ts` file, only
-`src/transform.js`. Saving `transform.ts` does trigger a live-reload (it's
-inside the watched `src/`), but that reload still uses whatever `transform.js`
-was last built, so it can look like nothing changed until you rebuild.
+Editing `src/transform.ts` needs a re-run of `mise run serve` (or
+`mise run build-transform` on its own) before it takes effect — `trmnlp serve`
+doesn't know about the `.ts` file, only `src/transform.js`. Saving
+`transform.ts` does trigger trmnlp's own live-reload (it's inside the watched
+`src/`), but that reload still uses whatever `transform.js` was last built, so
+it can look like nothing changed until you rebuild.
 
-- `trmnlp lint` — checks the plugin against TRMNL best practices
-- `trmnlp build` — render all four layouts to static HTML in `_build/`
-- `trmnlp pull` — overwrite `src/settings.yml` from the server
+- `mise run lint` — checks the plugin against TRMNL best practices
+- `mise run build` — render all four layouts to static HTML in `_build/`
+- `trmnlp pull` — overwrite `src/settings.yml` from the server (no transform
+  step involved, so no `mise run` wrapper for this one)
 
 ### Preview data
 
@@ -215,7 +230,7 @@ To preview against **live** data instead, comment out the `variables:` block
 in `.trmnlp.yml` and set `SWIFTLY_API_KEY` in a repo-root `.env` (mise loads
 it — see [`.env.example`](.env.example)). `polling_url` hits Swiftly's
 trip-updates feed directly and `src/transform.js` (make sure it's built —
-`npm run build:transform`) makes the rest of the calls.
+`mise run build-transform`) makes the rest of the calls.
 
 One local-only quirk: `trmnlp` resolves `.trmnlp.yml`'s `{{ env.X }}`
 templating for `polling_url`/`polling_headers`, but hands the transform the
@@ -241,15 +256,18 @@ type into the form field, not a template.
 
 ## Deploying
 
-`trmnlp push` uploads `src/` to a TRMNL private plugin. It needs:
+`mise run deploy` (builds the transform, then `trmnlp push`) uploads `src/` to
+a TRMNL private plugin. It needs:
 - an `id:` in `src/settings.yml` (the plugin's id — run `trmnlp pull` once to
   populate it, or copy it from the plugin's dashboard URL),
-- authentication: either `trmnlp login` once, or a `TRMNL_API_KEY` env var,
-  and
-- `src/transform.js` built and up to date (`npm run build:transform`) — this
-  is what TRMNL actually executes, though `trmnlp push` uploads every file in
-  `src/` unfiltered, so `transform.ts` and `tsconfig.json` tag along too
-  (harmless — TRMNL only looks for `transform.{js,py,rb,php}`).
+- authentication: a `TRMNL_API_KEY` in your `.env` (mise loads it — this is
+  what lets `deploy` push straight from your machine with no extra step), or
+  a stored `trmnlp login` session,
+- `src/transform.js` built and up to date — `mise run deploy` always rebuilds
+  it first, so this is automatic. It's what TRMNL actually executes, though
+  `trmnlp push` uploads every file in `src/` unfiltered, so `transform.ts` and
+  `tsconfig.json` tag along too (harmless — TRMNL only looks for
+  `transform.{js,py,rb,php}`).
 
 ## CI
 

@@ -115,6 +115,13 @@ another manager; use mise.
   automatically anywhere in the repo.
 - If it is not activated, prefix every command with `mise exec -- `
   (e.g. `mise exec -- npm run build:transform`).
+- `mise.toml` also defines `[tasks]` — `build-transform`, `typecheck-transform`,
+  `screenshots`, `lint`, `build`, `serve`, `deploy` — run via `mise run <name>`.
+  This is the preferred entry point over the raw commands below: every task
+  that touches the transform depends on `build-transform` (so it's always
+  fresh), and `[env] _.file = ".env"` at the top of `mise.toml` applies to
+  every task automatically, which is specifically what lets `mise run deploy`
+  push with just a `TRMNL_API_KEY` in `.env` — no separate `trmnlp login`.
 
 ## Commands
 
@@ -131,31 +138,42 @@ Node builtins only, no npm deps. Credentials come from the gitignored root
 ### The plugin (run from repo root)
 
 `trmnlp` comes from `mise` — see the Toolchain section above. Node/npm are
-only needed for the transform build (`npm install` once, first time).
+only needed for the transform build (`npm install` once, first time). Prefer
+the `mise run` tasks (see Toolchain section) over invoking these directly —
+they're thin wrappers (`mise run X` → `npm run X` or `trmnlp X`) that also
+chain in `build-transform` as a dependency where it matters, so the
+underlying commands below still apply 1:1, just without needing to remember
+to rebuild the transform first.
 
-- `npm run build:transform` — compiles `src/transform.ts` to
-  `src/transform.js` in place. Run this after every edit to the `.ts` source and
-  before `trmnlp serve`/`build`/`push` — none of them know about the `.ts`
-  file, they only read `src/transform.js`.
-- `npm run typecheck:transform` — same compile, `--noEmit`, for a fast type
-  check without touching `src/transform.js`.
-- `trmnlp serve` — dev server with live reload at `localhost:4567`
-- `trmnlp build` — render all layouts to static HTML in `_build/`
-- `trmnlp lint` — checks the plugin against TRMNL best practices (also a CI
-  step)
-- `trmnlp push` — deploy `src/` to TRMNL; needs an `id:` in `src/settings.yml`
-  and auth (`trmnlp login` once, or `TRMNL_API_KEY`)
-- `trmnlp pull` — overwrite `src/settings.yml` from the server
-- `npm run screenshots` — render all four layouts to `docs/screenshots/*.png`
-  via headless Chromium against `trmnlp serve` (the script spawns it if not
-  running). **This is the visual feedback loop when editing `src/*.liquid`:
-  edit a template, run this, then Read the PNG to see the change.** Routing
-  through the dev server (not `trmnlp build`) is intentional — the static
-  `_build/` HTML is missing the `<div class="trmnl">` design-system scope and
-  the `screen_classes` CSS scoping, so it renders incorrectly. The script
-  currently hardcodes TRMNL X (1040×780, `screen--v2 screen--lg`,
-  16-grays palette); see `scripts/screenshots.mjs` for the constants and the
-  picker class mapping if you need to check a different device.
+- `mise run build-transform` (`npm run build:transform`) — compiles
+  `src/transform.ts` to `src/transform.js` in place. Needed after every edit
+  to the `.ts` source and before `trmnlp serve`/`build`/`push` — none of them
+  know about the `.ts` file, they only read `src/transform.js`.
+- `mise run typecheck-transform` (`npm run typecheck:transform`) — same
+  compile, `--noEmit`, for a fast type check without touching
+  `src/transform.js`.
+- `mise run serve` (`trmnlp serve`) — dev server with live reload at
+  `localhost:4567`
+- `mise run build` (`trmnlp build`) — render all layouts to static HTML in
+  `_build/`
+- `mise run lint` (`trmnlp lint`) — checks the plugin against TRMNL best
+  practices (also a CI step)
+- `mise run deploy` (`trmnlp push`) — deploy `src/` to TRMNL; needs an `id:`
+  in `src/settings.yml` and auth (`TRMNL_API_KEY` in `.env`, or a stored
+  `trmnlp login` session)
+- `trmnlp pull` — overwrite `src/settings.yml` from the server (no transform
+  step involved, so there's no `mise run` wrapper for this one)
+- `mise run screenshots` (`npm run screenshots`) — render all four layouts to
+  `docs/screenshots/*.png` via headless Chromium against `trmnlp serve` (the
+  script spawns it if not running). **This is the visual feedback loop when
+  editing `src/*.liquid`: edit a template, run this, then Read the PNG to see
+  the change.** Routing through the dev server (not `trmnlp build`) is
+  intentional — the static `_build/` HTML is missing the `<div class="trmnl">`
+  design-system scope and the `screen_classes` CSS scoping, so it renders
+  incorrectly. The script currently hardcodes TRMNL X (1040×780,
+  `screen--v2 screen--lg`, 16-grays palette); see `scripts/screenshots.mjs`
+  for the constants and the picker class mapping if you need to check a
+  different device.
 
 Preview uses the static sample in `.trmnlp.yml`'s `variables:` block by
 default; comment it out to poll live data, which needs `SWIFTLY_API_KEY` in

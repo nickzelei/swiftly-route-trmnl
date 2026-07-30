@@ -9,9 +9,46 @@ ruby = "4.0"
 # Node.
 "gem:trmnl_preview" = "0.9.0"
 
-# Load SWIFTLY_API_KEY / AGENCY_KEY from a gitignored root .env so trmnlp can
-# preview against live data and the explore scripts (scripts/*.mjs) can hit
-# Swiftly. Optional — trmnlp previews fall back to the static payload in
-# .trmnlp.yml when unset. See .env.example.
+# Load SWIFTLY_API_KEY / AGENCY_KEY / TRMNL_API_KEY from a gitignored root
+# .env so trmnlp can preview against live data, the explore scripts
+# (scripts/*.mjs) can hit Swiftly, and `mise run deploy` can push to TRMNL
+# without a separate `trmnlp login`. Optional — trmnlp previews fall back to
+# the static payload in .trmnlp.yml when unset, and `deploy` falls back to
+# `trmnlp login`'s stored credentials. See .env.example. Every [tasks] entry
+# below inherits this automatically — that's the reason to run these as
+# `mise run <task>` rather than the raw command directly.
 [env]
 _.file = ".env"
+
+[tasks.build-transform]
+description = "Compile src/transform.ts to src/transform.js"
+run = "npm run build:transform"
+
+[tasks.typecheck-transform]
+description = "Typecheck src/transform.ts without emitting"
+run = "npm run typecheck:transform"
+
+[tasks.screenshots]
+description = "Render docs/screenshots/*.png from the current templates (spawns trmnlp serve if needed)"
+depends = ["build-transform"]
+run = "npm run screenshots"
+
+[tasks.lint]
+description = "Lint the plugin against TRMNL best practices"
+depends = ["build-transform"]
+run = "trmnlp lint"
+
+[tasks.build]
+description = "Render the plugin templates to static HTML in _build/"
+depends = ["build-transform"]
+run = "trmnlp build"
+
+[tasks.serve]
+description = "Start the trmnlp dev server with live reload at localhost:4567"
+depends = ["build-transform"]
+run = "trmnlp serve"
+
+[tasks.deploy]
+description = "Push src/ to TRMNL — needs TRMNL_API_KEY in .env, or a prior `trmnlp login`"
+depends = ["build-transform"]
+run = "trmnlp push"
