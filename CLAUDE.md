@@ -195,6 +195,15 @@ plan to make templates work across every device in `usetrmnl.com/api/models`.
 
 ## Key facts
 
+- **Never put a literal Liquid opening delimiter in `src/transform.ts`,
+  including inside comments or JavaScript strings.** TRMNL's hosted UI parses
+  uploaded transform source as Liquid before executing it, so those two
+  adjacent opening braces cause a Liquid syntax error even though they are
+  valid JavaScript. Construct the delimiter at runtime instead (for example,
+  `"{" + "{"`). Local `trmnlp build` and `trmnlp lint` do not catch this:
+  trmnlp sends the transform directly to a Node subprocess and only
+  Liquid-parses the layout files, while the incompatible parsing happens
+  after upload on TRMNL's backend.
 - `SWIFTLY_BASE` and `DEFAULT_TZ` in `src/transform.ts` are
   intentionally hardcoded, not config gaps: there's one Swiftly API for
   everyone, and Swiftly's spec marks agency `timezone` as required, so the
