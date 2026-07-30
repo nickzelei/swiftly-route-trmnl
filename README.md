@@ -47,7 +47,7 @@ an optional proxy auth key.
 |---|---|---|
 | [`worker/`](worker/README.md) | Node / TypeScript on Cloudflare Workers | The Swiftly proxy. One file (`src/index.ts`) — fetches agency info, route info, and the trip-updates feed, then returns one `section` per route direction. |
 | [`trmnl/`](trmnl/README.md) | Ruby / [`trmnlp`](https://github.com/usetrmnl/trmnlp) | The plugin itself: one Liquid template per TRMNL layout (`full`, `half_horizontal`, `half_vertical`, `quadrant`) plus `settings.yml`. |
-| [`explore/`](explore/README.md) | Python / `uv` | Throwaway scripts that poked the Swiftly API to discover stop and route ids. Already served their purpose; `trip_updates.py` is still handy for debugging the live feed. |
+| [`explore/`](explore/README.md) | Python / `uv` | Scripts for poking the Swiftly API. `explore_routes.py` is how you find your agency's route id for step 2 below; `trip_updates.py` is handy for debugging the live feed. |
 | [`docs/`](docs/) | — | Reference material (the Swiftly OpenAPI spec). |
 
 The three runtimes are independent — there is no shared build. `mise`
@@ -70,11 +70,26 @@ With mise activated in your shell, `node` / `npm` / `npx` / `uv` / `trmnlp`
 resolve automatically. If it is not activated, prefix every command below
 with `mise exec --`.
 
-### 2. Deploy the Worker
+### 2. Find your agency and route id
 
 You need a Swiftly API key (see [About Swiftly](#about-swiftly) above for how
-to request one) — it is account-scoped, so the same key only returns data for
-the agencies your account is authorized for.
+to request one). Swiftly's response also tells you your `AGENCY_KEY`. Use
+that to list your agency's routes and find the numeric id you want to poll:
+
+```sh
+cd explore
+cp .env.example .env   # fill in SWIFTLY_API_KEY and AGENCY_KEY
+uv run explore_routes.py                # lists every route with its id
+```
+
+See [`explore/README.md`](explore/README.md) for more (e.g. inspecting a
+route's stops).
+
+### 3. Deploy the Worker
+
+The same Swiftly API key from step 2 becomes a Worker secret — it is
+account-scoped, so it only returns data for the agencies your account is
+authorized for.
 
 ```sh
 cd worker
@@ -89,7 +104,7 @@ You get a URL like `https://swiftly-trmnl.<subdomain>.workers.dev`. See
 [`worker/README.md`](worker/README.md) for the full request/response shape
 and local dev.
 
-### 3. Push the templates to TRMNL
+### 4. Push the templates to TRMNL
 
 Create a private plugin in TRMNL, copy its id into `trmnl/src/settings.yml`,
 then:
@@ -103,7 +118,7 @@ trmnlp push           # uploads src/ to TRMNL
 `.github/workflows/trmnl.yml` does the same automatically on merge to `main`
 once `TRMNL_API_KEY` is set as a repo secret.
 
-### 4. Configure the install
+### 5. Configure the install
 
 In the TRMNL dashboard, fill in the plugin form fields:
 

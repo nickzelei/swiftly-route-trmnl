@@ -53,8 +53,10 @@ render directly.
   image** itself is uploaded in the TRMNL dashboard UI, not via
   `settings.yml`/`trmnlp`.
 - **`explore/`** — Python scripts (uv) for poking the Swiftly API.
-  `swiftly.py` is the shared client; the rest are standalone. Already served
-  their purpose (finding stop ids), but `trip_updates.py` /
+  `swiftly.py` is the shared client; the rest are standalone. Originally used
+  to find stop ids, but `explore_routes.py` is now also the documented way
+  for anyone installing the plugin to find their agency's route id (see
+  `explore/README.md` and the root README's Quick Start); `trip_updates.py` /
   `vehicle_positions.py` remain useful for debugging the live feed.
 
 The three runtimes are independent: `explore/` is Python via `uv`, `worker/`
