@@ -57,10 +57,12 @@ Worker's removal left it as the only real deployable.
   verbose route info), buckets trip updates by the trip's `directionId`, and
   returns one `section` per route direction. It performs no network requests
   and never reads the API key; the key is used only by `polling_headers`.
-  Tolerates camelCase/snake_case feed keys via `pick()`. `transform.ts` used
-  to live in a separate top-level
-  `transform-src/` directory (see git history) — colocated into `src/` since
-  trmnlp forces the executed file to be literally named `src/transform.js`
+  The response types model Swiftly's live `format=json` payloads, which use
+  camelCase protobuf JSON names and string-encoded `int64` timestamps; this
+  intentionally differs from a few stale snake_case/plural names in
+  `docs/apis/swiftly-oapi.yml`. `transform.ts` used to live in a separate
+  top-level `transform-src/` directory (see git history) — colocated into
+  `src/` since trmnlp forces the executed file to be literally named `src/transform.js`
   regardless (its subprocess wrapper always writes a `.js` tempfile and
   invokes plain `node` on it — no path exists for it to run a `.ts` file
   directly, even with Node's own native type-stripping support), so keeping

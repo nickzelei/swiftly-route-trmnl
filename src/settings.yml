@@ -44,7 +44,7 @@ custom_fields:
 - keyname: swiftly_api_key
   field_type: password
   name: Swiftly API Key
-  description: 'Your Swiftly API key (account-scoped to the agencies you are authorized for). Request one from <a href="https://www.goswift.ly/api-license">Swiftly''s API license page</a>.'
+  description: Your Swiftly API key (account-scoped to the agencies you are authorized for). Request one from <a href="https://www.goswift.ly/api-license">Swiftly's API license page</a>.
   group: Route
 - keyname: agency
   field_type: string

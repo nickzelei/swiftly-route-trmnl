@@ -43,29 +43,104 @@ interface Section {
 // custom_fields), as delivered to the transform under
 // input.trmnl.plugin_settings.custom_fields_values.
 interface CustomFieldsValues {
-  agency: string;
-  route: string;
+  agency?: string;
+  route?: string | number;
+}
+
+// Swiftly's format=json GTFS-RT response uses protobuf JSON conventions:
+// camelCase field names and strings for int64 timestamps. These names were
+// verified against the live API; the bundled Swagger 2 spec documents some
+// of them using their protobuf/snake_case names instead.
+interface FeedHeader {
+  gtfsRealtimeVersion: string;
+}
+
+interface StopTimeEvent {
+  // Swiftly's live protobuf JSON encoder emits int64 values as strings; the
+  // OpenAPI schema describes them as numbers. Accept both wire forms.
+  time?: string | number;
+}
+
+interface StopTimeUpdate {
+  stopId: string;
+  arrival?: StopTimeEvent;
+  departure?: StopTimeEvent;
+}
+
+interface TripDescriptor {
+  routeId?: string;
+  directionId?: number;
+}
+
+interface VehicleDescriptor {
+  id?: string;
+}
+
+interface TripUpdate {
+  trip: TripDescriptor;
+  stopTimeUpdate: StopTimeUpdate[];
+  vehicle?: VehicleDescriptor;
+}
+
+interface FeedEntity {
+  tripUpdate?: TripUpdate;
 }
 
 interface TripUpdatesFeed {
-  header?: unknown;
-  entity?: unknown[];
+  header: FeedHeader;
+  entity: FeedEntity[];
+}
+
+interface SwiftlyResponse<T> {
+  data: T;
+  success: boolean;
+}
+
+interface AgencyInfo {
+  timezone: string;
+}
+
+interface RouteStop {
+  id: string;
+  name: string;
+}
+
+interface RouteDirection {
+  id: string;
+  title: string;
+  stops: RouteStop[];
+}
+
+interface SwiftlyRoute {
+  name: string;
+  shortName: string;
+  longName: string;
+  directions?: RouteDirection[];
+}
+
+interface RoutesInfo {
+  routes?: SwiftlyRoute[];
 }
 
 // Multiple polling URLs arrive as IDX_0, IDX_1, and IDX_2 in declaration
-// order, plus the trmnl namespace the transform pipeline always adds. Feed
-// entities are typed loosely — the feed tolerates camelCase/snake_case keys,
-// so pick() reads them defensively rather than the type system enforcing a
-// shape Swiftly doesn't guarantee.
+// order, plus the trmnl namespace the transform pipeline always adds. The
+// fields are optional because trmnlp/TRMNL substitutes an empty object when a
+// poll fails; run() checks each response before using its typed payload.
 interface TransformInput {
   IDX_0?: TripUpdatesFeed;
-  IDX_1?: unknown;
-  IDX_2?: unknown;
-  trmnl: {
-    plugin_settings: {
-      custom_fields_values: CustomFieldsValues;
+  IDX_1?: SwiftlyResponse<AgencyInfo>;
+  IDX_2?: SwiftlyResponse<RoutesInfo>;
+  trmnl?: {
+    plugin_settings?: {
+      custom_fields_values?: CustomFieldsValues;
     };
   };
+  // Present only in .trmnlp.yml's trusted static preview fixture.
+  agency?: string;
+  route_id?: string;
+  route_name?: string;
+  updated_at?: string;
+  sections?: Section[];
 }
 
 interface SuccessOutput {
@@ -84,13 +159,6 @@ interface ErrorOutput {
 
 const DEFAULT_TZ = "America/Los_Angeles";
 
-// Tolerate camelCase / snake_case keys in the JSON feed.
-function pick(obj: unknown, ...keys: string[]): any {
-  if (!obj || typeof obj !== "object") return undefined;
-  for (const k of keys) if (k in obj) return (obj as Record<string, unknown>)[k];
-  return undefined;
-}
-
 function clockTime(epochMs: number, timeZone: string): string {
   return new Date(epochMs).toLocaleTimeString("en-US", {
     timeZone,
@@ -101,11 +169,11 @@ function clockTime(epochMs: number, timeZone: string): string {
 
 // stop id -> human name, gathered from every direction's stop list. The
 // trip-updates feed only carries stop ids; route info supplies the names.
-function buildStopNames(directions: any[]): Map<string, string> {
+function buildStopNames(directions: RouteDirection[]): Map<string, string> {
   const stopNames = new Map<string, string>();
   for (const dir of directions) {
-    for (const s of pick(dir, "stops") ?? []) {
-      stopNames.set(String(pick(s, "id") ?? ""), String(pick(s, "name") ?? ""));
+    for (const stop of dir.stops) {
+      stopNames.set(stop.id, stop.name);
     }
   }
   return stopNames;
@@ -115,37 +183,34 @@ function buildStopNames(directions: any[]): Map<string, string> {
 // Returns null when the entity is for another route, has no timed stops,
 // or its origin departure has already passed (no longer catchable).
 function buildTrip(
-  entity: any,
+  entity: FeedEntity,
   routeId: string,
   stopNames: Map<string, string>,
   now: number,
   tz: string,
 ): { directionId: string; trip: Trip } | null {
-  const tu = pick(entity, "tripUpdate", "trip_update");
+  const tu = entity.tripUpdate;
   if (!tu) return null;
-  const tripInfo = pick(tu, "trip") ?? {};
-  if (String(pick(tripInfo, "routeId", "route_id") ?? "") !== routeId) return null;
+  if (tu.trip.routeId !== routeId || tu.trip.directionId === undefined) return null;
 
-  const directionId = String(pick(tripInfo, "directionId", "direction_id") ?? "");
-  const vehicleId = String(pick(pick(tu, "vehicle") ?? {}, "id") ?? "");
+  const directionId = String(tu.trip.directionId);
+  const vehicleId = tu.vehicle?.id ?? "";
 
   // Each feed entity is one trip: collect its stops, in feed order, into
   // a single chain the templates render as one row.
   const stops: TripStop[] = [];
-  for (const stu of pick(tu, "stopTimeUpdate", "stop_time_update") ?? []) {
-    const stopId = String(pick(stu, "stopId", "stop_id") ?? "");
-
+  for (const stopUpdate of tu.stopTimeUpdate) {
     // Prefer the arrival time; the ferry feed often carries only a
     // departure time (e.g. at origin gates), so fall back to that.
-    const arrivalTime = pick(pick(stu, "arrival") ?? {}, "time");
-    const departureTime = pick(pick(stu, "departure") ?? {}, "time");
-    const epoch = arrivalTime ?? departureTime;
-    if (!epoch) continue;
+    const epoch = stopUpdate.arrival?.time ?? stopUpdate.departure?.time;
+    if (epoch === undefined) continue;
+    const epochSeconds = Number(epoch);
+    if (!Number.isFinite(epochSeconds)) continue;
 
     stops.push({
-      name: stopNames.get(stopId) || stopId,
-      time: clockTime(Number(epoch) * 1000, tz),
-      mins: Math.round((Number(epoch) - now) / 60),
+      name: stopNames.get(stopUpdate.stopId) || stopUpdate.stopId,
+      time: clockTime(epochSeconds * 1000, tz),
+      mins: Math.round((epochSeconds - now) / 60),
     });
   }
 
@@ -156,7 +221,7 @@ function buildTrip(
 // Bucket feed entities by direction, sort each bucket by next-departure,
 // and emit one section per direction in the route info's direction order.
 function buildSections(
-  directions: any[],
+  directions: RouteDirection[],
   feed: TripUpdatesFeed,
   routeId: string,
   stopNames: Map<string, string>,
@@ -164,9 +229,9 @@ function buildSections(
   tz: string,
 ): Section[] {
   const byDirection = new Map<string, Trip[]>();
-  for (const dir of directions) byDirection.set(String(pick(dir, "id") ?? ""), []);
+  for (const direction of directions) byDirection.set(direction.id, []);
 
-  for (const entity of feed.entity ?? []) {
+  for (const entity of feed.entity) {
     const parsed = buildTrip(entity, routeId, stopNames, now, tz);
     if (!parsed) continue;
     const bucket = byDirection.get(parsed.directionId);
@@ -174,13 +239,12 @@ function buildSections(
     bucket.push(parsed.trip);
   }
 
-  return directions.map((dir) => {
-    const id = String(pick(dir, "id") ?? "");
-    const trips = byDirection.get(id) ?? [];
+  return directions.map((direction) => {
+    const trips = byDirection.get(direction.id) ?? [];
     trips.sort((a, b) => a.stops[0].mins - b.stops[0].mins);
     return {
-      title: String(pick(dir, "title") ?? `Direction ${id}`),
-      direction_id: id,
+      title: direction.title || `Direction ${direction.id}`,
+      direction_id: direction.id,
       trips,
     };
   });
@@ -194,7 +258,15 @@ async function run(input: TransformInput): Promise<SuccessOutput | ErrorOutput> 
   // silently overwritten by a live (or failing) Swiftly call. A real
   // multi-URL Swiftly response never has a `sections` array, so its presence
   // unambiguously means "static fixture" — pass it through untouched.
-  if (Array.isArray((input as any).sections)) return input as unknown as SuccessOutput;
+  if (Array.isArray(input.sections)) {
+    return {
+      agency: input.agency ?? "",
+      route_id: input.route_id ?? "",
+      route_name: input.route_name ?? "",
+      updated_at: input.updated_at ?? "",
+      sections: input.sections,
+    };
+  }
 
   const fields = input.trmnl?.plugin_settings?.custom_fields_values;
   const agency = (fields?.agency ?? "").trim();
@@ -209,14 +281,14 @@ async function run(input: TransformInput): Promise<SuccessOutput | ErrorOutput> 
   const agencyData = input.IDX_1;
   const routeData = input.IDX_2;
 
-  if (!feed || !pick(feed, "header")) {
+  if (!feed?.header || !Array.isArray(feed.entity)) {
     return {
       error: "Swiftly trip updates unavailable",
       detail: "Check the Swiftly API key and agency.",
       sections: [],
     };
   }
-  if (!pick(agencyData, "data")) {
+  if (!agencyData?.success || !agencyData.data) {
     return {
       error: "Swiftly agency info unavailable",
       detail: "Check the Swiftly API key and agency.",
@@ -224,14 +296,22 @@ async function run(input: TransformInput): Promise<SuccessOutput | ErrorOutput> 
     };
   }
 
-  const tz = String(pick(pick(agencyData, "data") ?? {}, "timezone") || DEFAULT_TZ);
+  const tz = agencyData.data.timezone || DEFAULT_TZ;
 
-  const route = (pick(pick(routeData, "data") ?? {}, "routes") ?? [])[0];
+  if (!routeData?.success || !routeData.data) {
+    return {
+      error: "Swiftly route info unavailable",
+      detail: "Check the Swiftly API key, agency, and route.",
+      sections: [],
+    };
+  }
+
+  const route = routeData.data.routes?.[0];
   if (!route) {
     return { error: `route ${routeId} not found for agency ${agency}`, sections: [] };
   }
-  const routeName = String(pick(route, "longName", "name", "shortName") ?? routeId);
-  const directions: any[] = pick(route, "directions") ?? [];
+  const routeName = route.longName || route.name || route.shortName || routeId;
+  const directions = route.directions ?? [];
 
   const stopNames = buildStopNames(directions);
   const now = Math.floor(Date.now() / 1000);
