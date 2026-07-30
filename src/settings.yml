@@ -53,7 +53,7 @@ custom_fields:
   field_type: number
   placeholder: 19417
   name: Route
-  description: The numeric route id you wish to poll. Not sure what it is? Run explore/explore_routes.py from the GitHub repo (linked above) with your Swiftly API key and agency to list every route id for your agency.
+  description: The numeric route id you wish to poll. Not sure what it is? Run scripts/explore-routes.mjs from the GitHub repo (linked above) with your Swiftly API key and agency to list every route id for your agency.
   group: Route
 name: Swiftly
 refresh_interval: 15

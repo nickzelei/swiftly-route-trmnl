@@ -1,15 +1,17 @@
 [tools]
 node = "lts"
-uv = "latest"
 ruby = "4.0"
 # trmnlp (the TRMNL plugin dev server) ships as the trmnl_preview gem. mise's
 # `gem:` backend installs it and puts `trmnlp` on PATH — pinned here, so a
 # single `mise install` bootstraps the whole repo and `.github/workflows/`
-# uses the same version.
+# uses the same version. Ruby is the one non-Node runtime this repo needs;
+# everything else (the plugin's transform build, the explore scripts) is
+# Node.
 "gem:trmnl_preview" = "0.9.0"
 
-# Load SWIFTLY_API_KEY from a gitignored root .env so trmnlp can preview
-# against live data (it has no .env support of its own). Optional — previews
-# use the static payload in .trmnlp.yml when unset. See .env.example.
+# Load SWIFTLY_API_KEY / AGENCY_KEY from a gitignored root .env so trmnlp can
+# preview against live data and the explore scripts (scripts/*.mjs) can hit
+# Swiftly. Optional — trmnlp previews fall back to the static payload in
+# .trmnlp.yml when unset. See .env.example.
 [env]
 _.file = ".env"

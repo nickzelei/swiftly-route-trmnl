@@ -96,46 +96,48 @@ The plugin itself lives at the repo root (it's the one real deployable here):
 
 Everything else is a subdirectory:
 
-| Directory | Runtime | What's in it |
-|---|---|---|
-| [`explore/`](explore/README.md) | Python / `uv` | Scripts for poking the Swiftly API. `explore_routes.py` is how you find your agency's route id for step 2 below; `trip_updates.py` is handy for debugging the live feed. |
-| [`docs/`](docs/) | — | Reference material (the Swiftly OpenAPI spec) and the screenshots below. |
+| Directory | What's in it |
+|---|---|
+| `scripts/` | Node tooling: `screenshots.mjs` (renders `docs/screenshots/*.png`), the transform build, and `swiftly.mjs` + `explore-routes.mjs`/`trip-updates.mjs`/`vehicle-positions.mjs` for poking the Swiftly API directly. `explore-routes.mjs` is how you find your agency's route id for step 2 below; `trip-updates.mjs` is handy for debugging the live feed. |
+| [`docs/`](docs/) | Reference material (the Swiftly OpenAPI spec) and the screenshots below. |
 
-The two runtimes (`explore/`'s Python, everything else's Ruby/Node) are
-independent — there is no shared build between them. `mise` provides both, so
-a single `mise install` bootstraps the repo.
+This is a Node repo apart from `trmnlp` itself (a Ruby gem — see the
+Toolchain note below); there is no separate build to run.
 
 ## Quick start
 
 ### 1. Bootstrap the toolchain
 
 [`mise`](https://mise.jdx.dev/) is the version manager for the whole repo —
-it provides Node, `uv`, Ruby, and `trmnlp` (via mise's `gem:` backend). All
-versions are pinned in [`mise.toml`](mise.toml); nothing needs to be on the
-system PATH.
+it provides Node and `trmnlp` (via mise's `gem:` backend, which needs Ruby).
+All versions are pinned in [`mise.toml`](mise.toml); nothing needs to be on
+the system PATH.
 
 ```sh
 mise install        # run `mise trust` first if prompted
 ```
 
-With mise activated in your shell, `node` / `npm` / `npx` / `uv` / `trmnlp`
-resolve automatically. If it is not activated, prefix every command below
-with `mise exec --`.
+With mise activated in your shell, `node` / `npm` / `npx` / `trmnlp` resolve
+automatically. If it is not activated, prefix every command below with
+`mise exec --`.
 
 ### 2. Find your agency and route id
 
 You need a Swiftly API key (see [About Swiftly](#about-swiftly) above for how
-to request one). Swiftly's response also tells you your `AGENCY_KEY`. Use
-that to list your agency's routes and find the numeric id you want to poll:
+to request one). Swiftly's response also tells you your `AGENCY_KEY`. Copy
+`.env.example` to `.env` (mise loads it — see [`.env.example`](.env.example)),
+fill in `SWIFTLY_API_KEY` and `AGENCY_KEY`, then list your agency's routes to
+find the numeric id you want to poll:
 
 ```sh
-cd explore
-cp .env.example .env   # fill in SWIFTLY_API_KEY and AGENCY_KEY
-uv run explore_routes.py                # lists every route with its id
+npm install
+node scripts/explore-routes.mjs                # lists every route with its id
+node scripts/explore-routes.mjs --route 19417   # (optional) see that route's stops
 ```
 
-See [`explore/README.md`](explore/README.md) for more (e.g. inspecting a
-route's stops).
+`node scripts/trip-updates.mjs [--route ID] [--stops a,b,c]` and
+`node scripts/vehicle-positions.mjs [--route ID]` are handy for debugging the
+live feed once you know your route/stop ids.
 
 ### 3. Push the templates to TRMNL
 

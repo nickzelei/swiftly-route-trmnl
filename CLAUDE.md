@@ -16,7 +16,8 @@ API.
 
 The TRMNL plugin lives at the **repo root** (it's the one real deployable
 here) as a [trmnlp](https://github.com/usetrmnl/trmnlp) plugin project;
-`explore/` is throwaway tooling used to discover route/stop ids:
+`scripts/explore-routes.mjs` and friends are throwaway tooling used to
+discover route/stop ids:
 
 ```
 Swiftly API  →  TRMNL polling + serverless transform (root)  →  Liquid templates (root)
@@ -65,51 +66,54 @@ the repo root once the Worker's removal left it as the only real deployable.
   for the full field-type/category reference. The plugin **icon/preview
   image** itself is uploaded in the TRMNL dashboard UI, not via
   `settings.yml`/`trmnlp`.
-- **`explore/`** — Python scripts (uv) for poking the Swiftly API.
-  `swiftly.py` is the shared client; the rest are standalone. Originally used
-  to find stop ids, but `explore_routes.py` is now also the documented way
-  for anyone installing the plugin to find their agency's route id (see
-  `explore/README.md` and the root README's Quick Start); `trip_updates.py` /
-  `vehicle_positions.py` remain useful for debugging the live feed.
+- **`scripts/*.mjs`** — Node scripts (no npm deps, Node builtins only) for
+  poking the Swiftly API. `swiftly.mjs` is the shared client (`getJson()`,
+  `pick()`); the rest are standalone. Originally used to find stop ids, but
+  `explore-routes.mjs` is now also the documented way for anyone installing
+  the plugin to find their agency's route id (see the root README's Quick
+  Start); `trip-updates.mjs` / `vehicle-positions.mjs` remain useful for
+  debugging the live feed. These used to be Python (`uv`) scripts in an
+  `explore/` directory (see git history) — ported to Node so the repo needs
+  only one non-Ruby runtime.
 
-The two runtimes are independent: `explore/` is Python via `uv`; the plugin
-itself is Ruby via the `trmnl_preview` gem, with a Node/TypeScript build
-scoped to its `transform-src/` → `src/transform.js` compile step. There is no
-build shared across directories. `mise` provides `uv`, Node, and Ruby, so a
-single `mise install` bootstraps the whole repo.
+This is a Node repo apart from `trmnlp` itself (a Ruby gem) — there is no
+build shared across the transform compile step and the explore scripts
+beyond both being plain Node. `mise` provides Node and Ruby, so a single
+`mise install` bootstraps the whole repo.
 
 ## Toolchain: mise
 
 **`mise` is the version/tool manager for the whole repo** — it provides Node
-(npm, npx, tsc) for the transform build, `uv` for `explore/`, and Ruby for
-`trmnlp`. None are assumed to be on the system PATH; all are pinned in
-`mise.toml` at the repo root. Do not install Node, uv, or Ruby globally or via
+(npm, npx, tsc — for the transform build and the explore scripts) and Ruby
+(for `trmnlp`). Neither is assumed to be on the system PATH; both are pinned
+in `mise.toml` at the repo root. Do not install Node or Ruby globally or via
 another manager; use mise.
 
 - First time / after cloning: `mise install` at the repo root (run `mise trust`
   if prompted about the untrusted config). `trmnlp` comes from the
   `gem:trmnl_preview` entry in `mise.toml`'s `[tools]` — mise's `gem:` backend
   installs the gem and puts `trmnlp` on PATH, so `mise install` bootstraps it
-  along with Node, uv, and Ruby.
+  along with Node and Ruby.
 - Ruby is pinned to `4.0` (not `3.x`) because `trmnl_preview >= 0.8.0`
   (needed for serverless transform support) depends on `trmnl-liquid ~> 0.7`,
   which requires Ruby >= 4.0. Don't downgrade either pin without checking that
   dependency chain again.
-- If mise is activated in the shell, `node`/`npm`/`npx`/`uv`/`trmnlp` resolve
+- If mise is activated in the shell, `node`/`npm`/`npx`/`trmnlp` resolve
   automatically anywhere in the repo.
 - If it is not activated, prefix every command with `mise exec -- `
-  (e.g. `mise exec -- npm run build:transform`, `mise exec -- uv run trip_updates.py`).
+  (e.g. `mise exec -- npm run build:transform`).
 
 ## Commands
 
-### explore/ (run from `explore/`)
+### Explore scripts (run from repo root)
 
-Scripts are run with `uv` and declare their own PEP 723 metadata (stdlib only).
-Credentials come from `explore/.env` (`SWIFTLY_API_KEY`, `AGENCY_KEY`).
+Node builtins only, no npm deps. Credentials come from the gitignored root
+`.env` (`SWIFTLY_API_KEY`, `AGENCY_KEY`) — mise loads it for every command
+(see `.env.example`).
 
-- `uv run explore_routes.py [--route ID]` — list routes, or dump a route's stops
-- `uv run trip_updates.py [--route ID] [--stops a,b,c]` — upcoming arrivals
-- `uv run vehicle_positions.py [--route ID]` — live vehicle positions
+- `node scripts/explore-routes.mjs [--route ID]` — list routes, or dump a route's stops
+- `node scripts/trip-updates.mjs [--route ID] [--stops a,b,c]` — upcoming arrivals
+- `node scripts/vehicle-positions.mjs [--route ID]` — live vehicle positions
 
 ### The plugin (run from repo root)
 
