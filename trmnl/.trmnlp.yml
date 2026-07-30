@@ -7,24 +7,30 @@ watch:
   - src
 
 # Dev values for the plugin's custom fields (defined in src/settings.yml).
-# api_url / api_key come from the environment so no personal URL or secret is
-# checked into the repo. trmnlp has no .env support of its own; mise loads a
-# gitignored root .env into the environment instead (see .env.example).
+# swiftly_api_key comes from the environment so no secret is checked into the
+# repo. trmnlp has no .env support of its own; mise loads a gitignored root
+# .env into the environment instead (see .env.example).
+#
+# Heads up: this `{{ env.X }}` templating is only resolved by trmnlp for
+# polling_url/polling_headers — the raw (unresolved) string is what actually
+# reaches src/transform.js's custom_fields_values locally, which is why
+# transform-src/transform.ts has an env-var fallback for swiftly_api_key.
+# Real installs don't have this quirk: TRMNL hands the transform the literal
+# value installers typed into the form field.
 custom_fields:
-  api_url: "{{ env.BACKEND_URL }}"
   agency: sfbay-ferry
   route: 19417
-  api_key: "{{ env.BACKEND_SECRET }}"
+  swiftly_api_key: "{{ env.SWIFTLY_API_KEY }}"
 
-# Static preview payload — mirrors the JSON the Cloudflare Worker returns, so
-# previews render offline with no Swiftly API key. The top-level keys become
-# Liquid variables directly (TRMNL's Polling strategy; see README.md).
+# Static preview payload, so previews render offline with no Swiftly API key.
+# The top-level keys become Liquid variables directly (TRMNL's Polling
+# strategy; see README.md).
 #
-# To preview against LIVE data instead: comment out this `variables:` block.
-# polling_url is `{{ api_url }}?agency=...&route=...`, so point the `api_url`
-# custom field above at either (a) your deployed Worker via the BACKEND_URL env
-# var, or (b) a local Worker (`cd worker && npm run dev`) by setting BACKEND_URL
-# to `http://localhost:8787`.
+# To preview against LIVE data instead: comment out this `variables:` block
+# and make sure SWIFTLY_API_KEY is set in a repo-root .env (see .env.example)
+# — polling_url hits Swiftly's trip-updates feed directly, and
+# src/transform.js (built from transform-src/transform.ts via `npm run
+# build:transform`) makes the rest of the Swiftly calls.
 variables:
   agency: sfbay-ferry
   route_id: "19417"

@@ -1,8 +1,0 @@
-name = "swiftly-trmnl"
-main = "src/index.ts"
-compatibility_date = "2026-05-19"
-
-# No [vars]: agency and route are per-request TRMNL inputs (see README).
-# Secrets are set via `wrangler secret put` — never here:
-#   SWIFTLY_API_KEY  - required; the Swiftly API key
-#   BACKEND_SECRET   - optional shared-secret gate

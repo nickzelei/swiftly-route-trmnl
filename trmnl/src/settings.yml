@@ -5,9 +5,9 @@ dark_mode: 'no'
 static_data: ''
 polling_verb: get
 framework_version: latest
-serverless_language: ''
-polling_url: "{{ api_url }}?agency={{ agency }}&route={{ route }}"
-polling_headers: Authorization=Bearer {{ api_key }}
+serverless_language: node
+polling_url: "https://api.goswift.ly/real-time/{{ agency }}/gtfs-rt-trip-updates?format=json"
+polling_headers: Authorization={{ swiftly_api_key }}
 polling_body: ''
 id: 310138
 oauth_enabled: 'false'
@@ -34,21 +34,15 @@ custom_fields:
 - keyname: author_bio
   name: About This Plugin
   field_type: author_bio
-  description: 'Shows live arrival times for any Swiftly-powered transit agency and route. This plugin is self-hosted: you must deploy your own backend (Github provides Cloudflare Worker example) and provide your own Swiftly API key before it can pull data. See the GitHub repo for setup instructions.'
+  description: 'Shows live arrival times for any Swiftly-powered transit agency and route. Provide your own Swiftly API key below — no backend to deploy. See the GitHub repo for setup instructions.'
   category: travel,life
   email_address: nickzelei+trmnl@gmail.com
   github_url: https://github.com/nickzelei/swiftly-route-trmnl
-- keyname: api_url
-  field_type: string
-  name: Backend API Url
-  description: The base URL of your deployed backend (e.g. your Cloudflare Worker) that this plugin polls.
-  placeholder: https://example.com
-  group: Backend Connection
-- keyname: api_key
+- keyname: swiftly_api_key
   field_type: password
-  name: Backend API Key
-  description: The key used to authenticate with your deployed backend (not the API key provided by Swiftly!)
-  group: Backend Connection
+  name: Swiftly API Key
+  description: Your Swiftly API key (account-scoped to the agencies you're authorized for). Request one at https://www.goswift.ly/api-license.
+  group: Route
 - keyname: agency
   field_type: string
   placeholder: sfbay-ferry

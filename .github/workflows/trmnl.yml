@@ -19,15 +19,19 @@ defaults:
     working-directory: trmnl
 
 jobs:
-  # Render the templates to static HTML — fails if any Liquid is broken.
-  # (trmnlp 0.7.x has no `lint` command; `build` is the equivalent check.)
+  # Compile transform-src/transform.ts to src/transform.js (the serverless
+  # transform trmnlp/TRMNL actually execute — see trmnl/README.md), then
+  # render the templates to static HTML and lint the plugin.
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      # Installs the tools pinned in mise.toml (incl. the trmnl_preview gem)
-      # and caches them, so the gem install is skipped after the first run.
+      # Installs the tools pinned in mise.toml (incl. Node and the
+      # trmnl_preview gem) and caches them, so repeat installs are fast.
       - uses: jdx/mise-action@v4
+      - run: npm ci
+      - run: npm run build:transform
+      - run: trmnlp lint
       - run: trmnlp build
 
   # Deploy the templates + settings.yml to TRMNL on merge to main.
@@ -39,6 +43,8 @@ jobs:
   #   steps:
   #     - uses: actions/checkout@v7
   #     - uses: jdx/mise-action@v4
+  #     - run: npm ci
+  #     - run: npm run build:transform
   #     - run: trmnlp push --force
   #       env:
   #         TRMNL_API_KEY: ${{ secrets.TRMNL_API_KEY }}

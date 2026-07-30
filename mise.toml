@@ -1,12 +1,12 @@
 [tools]
 node = "lts"
 uv = "latest"
-ruby = "3.4"
+ruby = "4.0"
 # trmnlp (the TRMNL plugin dev server) ships as the trmnl_preview gem. mise's
 # `gem:` backend installs it and puts `trmnlp` on PATH — pinned here, so a
 # single `mise install` bootstraps the whole repo and `.github/workflows/`
 # uses the same version.
-"gem:trmnl_preview" = "0.7.1"
+"gem:trmnl_preview" = "0.9.0"
 
 # Load BACKEND_URL / BACKEND_SECRET from a gitignored root .env so trmnlp can
 # preview against live data (it has no .env support of its own). Optional —
