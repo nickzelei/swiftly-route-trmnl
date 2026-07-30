@@ -39,24 +39,37 @@ the repo root once the Worker's removal left it as the only real deployable.
 - `src/` holds one Liquid template per TRMNL layout (`full`,
   `half_horizontal`, `half_vertical`, `quadrant`), `settings.yml` (plugin
   config — polling URL/headers, form fields, `serverless_language: node`),
-  and `transform.js` (**generated**, see below). `.trmnlp.yml` is the
-  dev-server config and carries a static sample payload for offline preview.
-- `transform-src/transform.ts` is the type-safe source for `src/transform.js`
-  — compiled via `npm run build:transform` (plain `tsc`, no bundler; the file
-  has no imports so tsc's output stays a global-scope script, which is
-  required since the transform runs standalone with no npm install step). It
-  reads `input.trmnl.plugin_settings.custom_fields_values` for
+  `transform.ts` (the type-safe transform source — edit this), and
+  `transform.js` (**generated** from `transform.ts`, see below — don't edit
+  directly). `.trmnlp.yml` is the dev-server config and carries a static
+  sample payload for offline preview.
+- `src/transform.ts` is compiled to `src/transform.js` via
+  `npm run build:transform` (plain `tsc`, no bundler, emitting in place via
+  `src/tsconfig.json`; the file has no imports so tsc's output stays a
+  global-scope script, which is required since the transform runs standalone
+  with no npm install step). It reads
+  `input.trmnl.plugin_settings.custom_fields_values` for
   `agency`/`route`/`swiftly_api_key`, makes the agency-info +
   verbose-route-info Swiftly calls, buckets the already-polled trip-updates
   feed (`input.entity`) by the trip's `directionId`, and returns one
   `section` per route direction. Tolerates camelCase/snake_case feed keys via
-  `pick()`.
+  `pick()`. `transform.ts` used to live in a separate top-level
+  `transform-src/` directory (see git history) — colocated into `src/` since
+  trmnlp forces the executed file to be literally named `src/transform.js`
+  regardless (its subprocess wrapper always writes a `.js` tempfile and
+  invokes plain `node` on it — no path exists for it to run a `.ts` file
+  directly, even with Node's own native type-stripping support), so keeping
+  the two files apart in different directories bought nothing.
 - The transform's top-level JSON keys (`route_name`, `updated_at`,
   `sections`) become Liquid variables directly; templates iterate
   `sections`. Sorting and capping happen in the transform. `trmnlp serve`
-  renders the templates locally (does **not** watch `transform-src/` —
-  rebuild manually after editing it); `trmnlp push` deploys `src/` (including
-  the built `transform.js`) to TRMNL.
+  renders the templates locally; editing `transform.ts` triggers its
+  live-reload (it's inside the watched `src/`) but that reload still uses
+  whatever `transform.js` was last built, so rebuild manually
+  (`npm run build:transform`) after editing `transform.ts` before the change
+  actually shows up. `trmnlp push` deploys `src/` to TRMNL — this uploads
+  every file in `src/` unfiltered (including `transform.ts`/`tsconfig.json`,
+  harmlessly — TRMNL only looks for `transform.{js,py,rb,php}`).
 - `custom_fields` entries support a `group: "Name"` key (clusters fields into
   a collapsible section on the install form) and `field_type: author_bio` (a
   README-like block rendered below the plugin's preview image, with its own
@@ -120,8 +133,8 @@ Node builtins only, no npm deps. Credentials come from the gitignored root
 `trmnlp` comes from `mise` — see the Toolchain section above. Node/npm are
 only needed for the transform build (`npm install` once, first time).
 
-- `npm run build:transform` — compiles `transform-src/transform.ts` to
-  `src/transform.js`. Run this after every edit to the `.ts` source and
+- `npm run build:transform` — compiles `src/transform.ts` to
+  `src/transform.js` in place. Run this after every edit to the `.ts` source and
   before `trmnlp serve`/`build`/`push` — none of them know about the `.ts`
   file, they only read `src/transform.js`.
 - `npm run typecheck:transform` — same compile, `--noEmit`, for a fast type
@@ -150,8 +163,8 @@ the environment — mise loads it from a gitignored root `.env` (see
 `.env.example`). trmnlp resolves `.trmnlp.yml`'s `{{ env.X }}` templating for
 `polling_url`/`polling_headers`, but hands the transform the *raw* templated
 string for `custom_fields_values` — a local-only quirk, which is why
-`transform-src/transform.ts` has a `process.env.SWIFTLY_API_KEY` fallback for
-exactly this case. Real installs never hit that branch: TRMNL passes the
+`src/transform.ts` has a `process.env.SWIFTLY_API_KEY` fallback for exactly
+this case. Real installs never hit that branch: TRMNL passes the
 transform the plain value installers type into the form field, not a
 template. `.github/workflows/trmnl.yml` builds the transform and runs
 `trmnlp lint`/`build` on every PR; the `push` job is present but commented
@@ -164,7 +177,7 @@ plan to make templates work across every device in `usetrmnl.com/api/models`.
 
 ## Key facts
 
-- `SWIFTLY_BASE` and `DEFAULT_TZ` in `transform-src/transform.ts` are
+- `SWIFTLY_BASE` and `DEFAULT_TZ` in `src/transform.ts` are
   intentionally hardcoded, not config gaps: there's one Swiftly API for
   everyone, and Swiftly's spec marks agency `timezone` as required, so the
   default is an unreachable-in-practice fallback. Don't add form fields for

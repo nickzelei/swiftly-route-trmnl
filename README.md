@@ -33,7 +33,7 @@ TRMNL's **Polling** strategy fetches a URL and hands the raw JSON to a
 `trmnlp` in dev, or on TRMNL's hosted microVM daemon in production) — before
 Liquid ever sees it. The Swiftly `gtfs-rt-trip-updates` feed is agency-wide
 and large, so polling hits it directly and `src/transform.js` (compiled from
-the type-safe `transform-src/transform.ts`) does the rest: two more Swiftly
+the type-safe `src/transform.ts`) does the rest: two more Swiftly
 calls (agency info for the timezone, verbose route info for the route's
 directions + stop names), buckets the feed's sailings by direction, and
 returns a small sculpted payload the Liquid templates render directly:
@@ -90,8 +90,8 @@ The plugin itself lives at the repo root (it's the one real deployable here):
 | `src/half_vertical.liquid` | Half Vertical (400×480) — up to 2 trips per direction, stacked |
 | `src/quadrant.liquid` | Quadrant (400×240) — next trip per direction, stacked |
 | `src/settings.yml` | Plugin config: strategy, polling URL, form fields |
-| `src/transform.js` | The serverless transform trmnlp/TRMNL execute. **Generated** — don't edit directly |
-| `transform-src/transform.ts` | The type-safe source for `src/transform.js` — edit this, then `npm run build:transform` |
+| `src/transform.ts` | The type-safe source for `src/transform.js` — edit this, then `npm run build:transform` |
+| `src/transform.js` | The serverless transform trmnlp/TRMNL execute. **Generated** from `transform.ts` — don't edit directly |
 | `.trmnlp.yml` | Dev-server config + static preview data (not uploaded to TRMNL) |
 
 Everything else is a subdirectory:
@@ -145,7 +145,7 @@ Create a private plugin in TRMNL, copy its id into `src/settings.yml`, then:
 
 ```sh
 npm install
-npm run build:transform   # compiles transform-src/transform.ts -> src/transform.js
+npm run build:transform   # compiles src/transform.ts -> src/transform.js
 trmnlp login              # one time, or set TRMNL_API_KEY
 trmnlp push                # uploads src/ to TRMNL
 ```
@@ -191,12 +191,15 @@ npm run screenshots                  # writes docs/screenshots/*.png
 
 ```sh
 npm install
-npm run build:transform   # compiles the transform after any transform-src edit
+npm run build:transform   # compiles src/transform.ts -> src/transform.js
 trmnlp serve               # live-reloading preview at http://localhost:4567
 ```
 
-Editing `transform-src/transform.ts` needs a manual `npm run build:transform`
-— `trmnlp serve` only watches `src/` and `.trmnlp.yml`, not `transform-src/`.
+Editing `src/transform.ts` needs a manual `npm run build:transform` before it
+takes effect — `trmnlp serve` doesn't know about the `.ts` file, only
+`src/transform.js`. Saving `transform.ts` does trigger a live-reload (it's
+inside the watched `src/`), but that reload still uses whatever `transform.js`
+was last built, so it can look like nothing changed until you rebuild.
 
 - `trmnlp lint` — checks the plugin against TRMNL best practices
 - `trmnlp build` — render all four layouts to static HTML in `_build/`
@@ -216,11 +219,10 @@ trip-updates feed directly and `src/transform.js` (make sure it's built —
 
 One local-only quirk: `trmnlp` resolves `.trmnlp.yml`'s `{{ env.X }}`
 templating for `polling_url`/`polling_headers`, but hands the transform the
-*raw* templated string for `custom_fields_values` — so
-`transform-src/transform.ts` has a `process.env.SWIFTLY_API_KEY` fallback for
-exactly this case. Real installs never hit that branch: TRMNL passes the
-transform the plain value installers type into the form field, not a
-template.
+*raw* templated string for `custom_fields_values` — so `src/transform.ts` has
+a `process.env.SWIFTLY_API_KEY` fallback for exactly this case. Real installs
+never hit that branch: TRMNL passes the transform the plain value installers
+type into the form field, not a template.
 
 ## Key facts
 
@@ -244,8 +246,10 @@ template.
   populate it, or copy it from the plugin's dashboard URL),
 - authentication: either `trmnlp login` once, or a `TRMNL_API_KEY` env var,
   and
-- `src/transform.js` built and up to date (`npm run build:transform`) — it's
-  what actually gets uploaded, not `transform-src/transform.ts`.
+- `src/transform.js` built and up to date (`npm run build:transform`) — this
+  is what TRMNL actually executes, though `trmnlp push` uploads every file in
+  `src/` unfiltered, so `transform.ts` and `tsconfig.json` tag along too
+  (harmless — TRMNL only looks for `transform.{js,py,rb,php}`).
 
 ## CI
 

@@ -14,9 +14,9 @@ watch:
 # Heads up: this `{{ env.X }}` templating is only resolved by trmnlp for
 # polling_url/polling_headers — the raw (unresolved) string is what actually
 # reaches src/transform.js's custom_fields_values locally, which is why
-# transform-src/transform.ts has an env-var fallback for swiftly_api_key.
-# Real installs don't have this quirk: TRMNL hands the transform the literal
-# value installers typed into the form field.
+# src/transform.ts has an env-var fallback for swiftly_api_key. Real installs
+# don't have this quirk: TRMNL hands the transform the literal value
+# installers typed into the form field.
 custom_fields:
   agency: sfbay-ferry
   route: 19417
@@ -29,8 +29,10 @@ custom_fields:
 # To preview against LIVE data instead: comment out this `variables:` block
 # and make sure SWIFTLY_API_KEY is set in a repo-root .env (see .env.example)
 # — polling_url hits Swiftly's trip-updates feed directly, and
-# src/transform.js (built from transform-src/transform.ts via `npm run
-# build:transform`) makes the rest of the Swiftly calls.
+# src/transform.js (built from src/transform.ts via `npm run build:transform`
+# — note trmnlp's live-reload watches src/, so saving transform.ts triggers a
+# reload, but it'll still use the last-built transform.js until you rerun the
+# build) makes the rest of the Swiftly calls.
 variables:
   agency: sfbay-ferry
   route_id: "19417"

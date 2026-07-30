@@ -7,7 +7,7 @@
 //   node scripts/trip-updates.mjs --stops 72011,72012,72013    # SF Ferry Building (all gates)
 //   node scripts/trip-updates.mjs --route 19417 --stops 72011,72012,72013
 //
-// This is the core query the TRMNL plugin's transform (transform-src/transform.ts)
+// This is the core query the TRMNL plugin's transform (src/transform.ts)
 // runs on a schedule.
 
 import { parseArgs } from 'node:util';
