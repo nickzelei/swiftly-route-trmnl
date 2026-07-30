@@ -7,6 +7,21 @@ target), but the agency and route are TRMNL plugin inputs, so one install of
 this recipe can be pointed at any route on any Swiftly agency you have an API
 key for. Currently only optimized for TRMNL X resolutions.
 
+## About Swiftly
+
+[Swiftly](https://www.goswift.ly/) is a transit data platform that many
+agencies (SF Bay Ferry among them) use to power real-time arrival
+predictions, GTFS-RT feeds, and vehicle tracking. This plugin reads from
+Swiftly's [Real-Time API](https://realtime-docs.goswift.ly/) — the same feed
+agencies use to power their own rider-facing apps.
+
+Access requires an API key, which is account-scoped to the agencies you're
+authorized for. To request one, go to Swiftly's
+[API license page](https://www.goswift.ly/api-license) and fill out the
+linked Google form; Swiftly follows up by email with a key and further
+details. There's no self-serve signup, so budget a few days for a human to
+respond before you can deploy the Worker below.
+
 ## How it works
 
 ```
@@ -57,9 +72,9 @@ with `mise exec --`.
 
 ### 2. Deploy the Worker
 
-You need a [Swiftly](https://goswift.ly/) API key — it is account-scoped, so
-the same key only returns data for the agencies your account is authorized
-for.
+You need a Swiftly API key (see [About Swiftly](#about-swiftly) above for how
+to request one) — it is account-scoped, so the same key only returns data for
+the agencies your account is authorized for.
 
 ```sh
 cd worker
