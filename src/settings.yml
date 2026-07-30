@@ -6,7 +6,7 @@ static_data: ''
 polling_verb: get
 framework_version: latest
 serverless_language: node
-polling_url: "https://api.goswift.ly/real-time/{{ agency }}/gtfs-rt-trip-updates?format=json"
+polling_url: https://api.goswift.ly/real-time/{{ agency }}/gtfs-rt-trip-updates?format=json
 polling_headers: Authorization={{ swiftly_api_key }}
 polling_body: ''
 id: 310138
@@ -34,7 +34,7 @@ custom_fields:
 - keyname: author_bio
   name: About This Plugin
   field_type: author_bio
-  description: 'Shows live arrival times for any Swiftly-powered transit agency and route. Provide your own Swiftly API key below — no backend to deploy. See the GitHub repo for setup instructions.'
+  description: Shows live arrival times for any Swiftly-powered transit agency and route.
   category: travel,life
   email_address: nickzelei+trmnl@gmail.com
   github_url: https://github.com/nickzelei/swiftly-route-trmnl

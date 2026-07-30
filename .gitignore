@@ -7,4 +7,7 @@ bin
 # trmnlp render output
 _build/
 
+# Generated from src/transform.ts by `mise run build-transform`.
+src/transform.js
+
 .claude/settings.local.json
