@@ -43,6 +43,15 @@ render directly.
   variables directly; templates iterate `sections`. Sorting and capping happen
   in the Worker. `trmnlp serve` renders the templates locally; `trmnlp push`
   deploys `src/` to TRMNL.
+  `custom_fields` entries support a `group: "Name"` key (clusters fields into
+  a collapsible section on the install form) and `field_type: author_bio` (a
+  README-like block rendered below the plugin's preview image, with its own
+  `category`/`email_address`/`github_url`/`learn_more_url`/`youtube_url`
+  keys) — see [TRMNL's form builder
+  docs](https://help.trmnl.com/en/articles/10513740-custom-plugin-form-builder)
+  for the full field-type/category reference. The plugin **icon/preview
+  image** itself is uploaded in the TRMNL dashboard UI, not via
+  `settings.yml`/`trmnlp`.
 - **`explore/`** — Python scripts (uv) for poking the Swiftly API.
   `swiftly.py` is the shared client; the rest are standalone. Already served
   their purpose (finding stop ids), but `trip_updates.py` /
@@ -134,6 +143,10 @@ plan to make templates work across every device in `usetrmnl.com/api/models`.
 
 ## Key facts
 
+- `SWIFTLY_BASE` and `DEFAULT_TZ` in `worker/src/index.ts` are intentionally
+  hardcoded, not config gaps: there's one Swiftly API for everyone, and
+  Swiftly's spec marks agency `timezone` as required, so the default is an
+  unreachable-in-practice fallback. Don't add form fields for either.
 - The Worker groups sailings by the route's **direction** (from verbose route
   info), not by stop — so multi-gate terminals (e.g. the SF Ferry Building's
   gates E/F/G) and multi-stop routes need no special handling.
