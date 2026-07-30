@@ -8,7 +8,7 @@
 // output is missing the `<div class="trmnl">` wrapper and any screen-class
 // scoping, so it renders with a gray background and no model-specific sizing.
 //
-// Usage (from trmnl/):
+// Usage (from repo root):
 //   npm install
 //   npx playwright install chromium    # one time
 //   npm run screenshots                # auto-starts trmnlp serve if not running
@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const out  = resolve(here, '..', '..', 'docs', 'screenshots');
+const out  = resolve(here, '..', 'docs', 'screenshots');
 await mkdir(out, { recursive: true });
 
 // Match the TRMNL X / 16 Grays (4-bit) / Landscape / Light Mode defaults that

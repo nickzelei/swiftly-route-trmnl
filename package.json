@@ -1,0 +1,16 @@
+{
+  "name": "sfbayferry-trmnl",
+  "private": true,
+  "description": "Node tooling for the TRMNL plugin: compiles the type-safe transform-src/transform.ts into the plain JS trmnlp/TRMNL execute (src/transform.js), and renders docs/screenshots/*.png via headless Chromium. The plugin itself (src/*.liquid, settings.yml) is otherwise a trmnlp (Ruby) project — this is not part of the plugin runtime.",
+  "type": "module",
+  "scripts": {
+    "screenshots": "node scripts/screenshots.mjs",
+    "build:transform": "tsc -p transform-src/tsconfig.json",
+    "typecheck:transform": "tsc -p transform-src/tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "playwright": "^1.48.0",
+    "typescript": "^6.0.3"
+  }
+}

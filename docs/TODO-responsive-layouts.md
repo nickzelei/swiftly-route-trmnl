@@ -27,7 +27,7 @@ Kobo, etc. — full list at <https://usetrmnl.com/api/models>).
 Lean on the TRMNL framework's screen-class scoping rather than
 device-specific templates. Every render is wrapped in
 `screen screen--{palette} screen--{device} screen--{size} screen--1x`
-(see `trmnl/scripts/screenshots.mjs` for the picker's class
+(see `scripts/screenshots.mjs` for the picker's class
 composition). The framework already ships size buckets — `screen--sm`,
 `screen--md`, `screen--lg` — and per-class typography/spacing scales.
 
@@ -43,7 +43,7 @@ Things to try, in rough order of cost:
    off some indicator of available height — or just bumping it to
    `limit: 1` for the half/quadrant cases — would prevent overflow.
    (Liquid has no media query, so this likely needs a custom field or a
-   server-side branch in the Worker.)
+   branch in the serverless transform.)
 3. **Truncate long stop chains.** A three-stop intermediate trip is what
    pushes things over the edge most often. Show
    `origin → … → destination` (drop intermediates) when the layout is
@@ -55,10 +55,10 @@ Things to try, in rough order of cost:
 
 ## Pointers
 
-- Templates: [`trmnl/src/*.liquid`](../trmnl/src/)
+- Templates: [`src/*.liquid`](../src/)
 - Sample payload (the content currently overflowing):
-  `trmnl/.trmnlp.yml` → `variables:` block
-- Screenshot tool: [`trmnl/scripts/screenshots.mjs`](../trmnl/scripts/screenshots.mjs)
+  `.trmnlp.yml` → `variables:` block
+- Screenshot tool: [`scripts/screenshots.mjs`](../scripts/screenshots.mjs)
 - TRMNL Framework docs: <https://usetrmnl.com/framework>
 - Device catalog (canonical class names + dimensions):
   <https://usetrmnl.com/api/models>

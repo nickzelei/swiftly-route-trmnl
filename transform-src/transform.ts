@@ -12,7 +12,7 @@
  * This is the TypeScript source of truth — it is compiled (not bundled; it
  * has no imports, so tsc's output stays a plain global-scope script) to
  * src/transform.js, the file trmnlp/TRMNL actually execute. Run `npm run
- * build:transform` after editing this file. See trmnl/README.md.
+ * build:transform` after editing this file. See README.md.
  *
  * Runs in a sandboxed Node subprocess with no npm install step, so this
  * file must not import anything outside Node/JS builtins.

@@ -3,25 +3,28 @@ name: TRMNL
 on:
   pull_request:
     paths:
-      - 'trmnl/**'
+      - 'src/**'
+      - 'transform-src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.trmnlp.yml'
       - 'mise.toml'
       - '.github/workflows/trmnl.yml'
   push:
     branches: [main]
     paths:
-      - 'trmnl/**'
+      - 'src/**'
+      - 'transform-src/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - '.trmnlp.yml'
       - 'mise.toml'
       - '.github/workflows/trmnl.yml'
 
-# The trmnlp plugin lives in the trmnl/ subdirectory, not the repo root.
-defaults:
-  run:
-    working-directory: trmnl
-
 jobs:
   # Compile transform-src/transform.ts to src/transform.js (the serverless
-  # transform trmnlp/TRMNL actually execute — see trmnl/README.md), then
-  # render the templates to static HTML and lint the plugin.
+  # transform trmnlp/TRMNL actually execute — see README.md), then render
+  # the templates to static HTML and lint the plugin.
   build:
     runs-on: ubuntu-latest
     steps:
