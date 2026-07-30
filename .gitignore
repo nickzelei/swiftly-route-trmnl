@@ -5,3 +5,5 @@ node_modules
 .dev.vars
 bin
 .wrangler
+
+.claude/settings.local.json
