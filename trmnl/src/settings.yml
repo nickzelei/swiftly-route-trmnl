@@ -41,13 +41,13 @@ custom_fields:
 - keyname: api_url
   field_type: string
   name: Backend API Url
-  description: The API base url used to hit the backend server that returns the expected Swiftly response.
+  description: The base URL of your deployed backend (e.g. your Cloudflare Worker) that this plugin polls.
   placeholder: https://example.com
   group: Backend Connection
 - keyname: api_key
   field_type: password
   name: Backend API Key
-  description: The API key used to authenticate with your Swiftly backend (not the API key provided by Swiftly!)
+  description: The key used to authenticate with your deployed backend (not the API key provided by Swiftly!)
   group: Backend Connection
 - keyname: agency
   field_type: string
