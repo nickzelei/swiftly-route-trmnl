@@ -194,38 +194,52 @@ TRMNL X, where there's room for it (see
 [`docs/TODO-responsive-layouts.md`](docs/TODO-responsive-layouts.md) for the
 verification history).
 
+Screenshots are checked in under [`docs/screenshots/`](docs/screenshots/),
+nested `<device>/<orientation>/<layout>.png` (e.g.
+`docs/screenshots/trmnl-x/landscape/full.png`), so the path alone says what
+you're looking at.
+
 ### TRMNL X — landscape (1872×1404 physical, 1040×780 CSS px)
 
-| Template | Size | Preview |
-|---|---|---|
-| `src/full.liquid` | 800×480 | [![full](docs/screenshots/full.png)](docs/screenshots/full.png) |
-| `src/half_horizontal.liquid` | 800×240 | [![half_horizontal](docs/screenshots/half_horizontal.png)](docs/screenshots/half_horizontal.png) |
-| `src/half_vertical.liquid` | 400×480 | [![half_vertical](docs/screenshots/half_vertical.png)](docs/screenshots/half_vertical.png) |
-| `src/quadrant.liquid` | 400×240 | [![quadrant](docs/screenshots/quadrant.png)](docs/screenshots/quadrant.png) |
+**`src/full.liquid`** — 800×480
+![full](docs/screenshots/trmnl-x/landscape/full.png)
 
-<details>
-<summary>TRMNL X — portrait (780×1040 CSS px)</summary>
+**`src/half_horizontal.liquid`** — 800×240
+![half_horizontal](docs/screenshots/trmnl-x/landscape/half_horizontal.png)
 
-| Template | Preview |
-|---|---|
-| `src/full.liquid` | <a href="docs/screenshots/portrait/full.png"><img src="docs/screenshots/portrait/full.png" width="220"></a> |
-| `src/half_horizontal.liquid` | <a href="docs/screenshots/portrait/half_horizontal.png"><img src="docs/screenshots/portrait/half_horizontal.png" width="220"></a> |
-| `src/half_vertical.liquid` | <a href="docs/screenshots/portrait/half_vertical.png"><img src="docs/screenshots/portrait/half_vertical.png" width="220"></a> |
-| `src/quadrant.liquid` | <a href="docs/screenshots/portrait/quadrant.png"><img src="docs/screenshots/portrait/quadrant.png" width="220"></a> |
+**`src/half_vertical.liquid`** — 400×480
+![half_vertical](docs/screenshots/trmnl-x/landscape/half_vertical.png)
 
-</details>
+**`src/quadrant.liquid`** — 400×240
+![quadrant](docs/screenshots/trmnl-x/landscape/quadrant.png)
 
-<details>
-<summary>TRMNL OG / OG Plus — landscape (800×480)</summary>
+### TRMNL X — portrait (780×1040 CSS px)
 
-| Template | Preview |
-|---|---|
-| `src/full.liquid` | <a href="docs/screenshots/og-plus/full.png"><img src="docs/screenshots/og-plus/full.png" width="220"></a> |
-| `src/half_horizontal.liquid` | <a href="docs/screenshots/og-plus/half_horizontal.png"><img src="docs/screenshots/og-plus/half_horizontal.png" width="220"></a> |
-| `src/half_vertical.liquid` | <a href="docs/screenshots/og-plus/half_vertical.png"><img src="docs/screenshots/og-plus/half_vertical.png" width="220"></a> |
-| `src/quadrant.liquid` | <a href="docs/screenshots/og-plus/quadrant.png"><img src="docs/screenshots/og-plus/quadrant.png" width="220"></a> |
+**`src/full.liquid`**
+<img src="docs/screenshots/trmnl-x/portrait/full.png" width="360">
 
-</details>
+**`src/half_horizontal.liquid`**
+<img src="docs/screenshots/trmnl-x/portrait/half_horizontal.png" width="360">
+
+**`src/half_vertical.liquid`**
+<img src="docs/screenshots/trmnl-x/portrait/half_vertical.png" width="360">
+
+**`src/quadrant.liquid`**
+<img src="docs/screenshots/trmnl-x/portrait/quadrant.png" width="360">
+
+### TRMNL OG / OG Plus — landscape (800×480)
+
+**`src/full.liquid`**
+![full](docs/screenshots/og-plus/landscape/full.png)
+
+**`src/half_horizontal.liquid`**
+![half_horizontal](docs/screenshots/og-plus/landscape/half_horizontal.png)
+
+**`src/half_vertical.liquid`**
+![half_vertical](docs/screenshots/og-plus/landscape/half_vertical.png)
+
+**`src/quadrant.liquid`**
+![quadrant](docs/screenshots/og-plus/landscape/quadrant.png)
 
 Previews are rendered from the sample payload in
 [`.trmnlp.yml`](.trmnlp.yml) via `trmnlp serve` and screenshotted with
@@ -235,7 +249,7 @@ for the device/orientation matrix. To regenerate after changing a template:
 ```sh
 npm install                          # one time
 npx playwright install chromium      # one time
-mise run screenshots                 # writes docs/screenshots/**/*.png
+mise run screenshots                 # writes docs/screenshots/<device>/<orientation>/*.png
 ```
 
 ## Local development

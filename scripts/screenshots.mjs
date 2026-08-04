@@ -31,9 +31,9 @@ const layouts = ['full', 'half_horizontal', 'half_vertical', 'quadrant'];
 // straight from https://usetrmnl.com/api/models (`css.classes`) — the
 // dev-server picker composes the same `device`/`size` classes into the
 // `screen_classes` query string, and its bit-depth palette class comes from
-// each model's `bit_depth` (TRMNL X is 4-bit, OG Plus is 2-bit). `outDir:
-// null` writes to docs/screenshots/ directly, keeping the existing filenames
-// (and README links) for the TRMNL X landscape shots stable.
+// each model's `bit_depth` (TRMNL X is 4-bit, OG Plus is 2-bit). Every combo
+// writes to docs/screenshots/<outDir>/ — nested by device then orientation —
+// so the directory listing alone says what each PNG is a picture of.
 //
 // Orientation is not a separate device/model — the picker just adds a
 // `screen--portrait` class, which swaps the framework's `--screen-w`/
@@ -44,21 +44,21 @@ const DEVICES = [
   {
     key: 'trmnl-x-landscape',
     label: 'TRMNL X — landscape',
-    outDir: null,
+    outDir: 'trmnl-x/landscape',
     screenClasses: 'screen screen--4bit screen--v2 screen--lg screen--1x',
     viewport: { width: 1040, height: 780 },
   },
   {
     key: 'trmnl-x-portrait',
     label: 'TRMNL X — portrait',
-    outDir: 'portrait',
+    outDir: 'trmnl-x/portrait',
     screenClasses: 'screen screen--4bit screen--v2 screen--lg screen--portrait screen--1x',
     viewport: { width: 780, height: 1040 },
   },
   {
     key: 'og-plus-landscape',
     label: 'TRMNL OG Plus — landscape',
-    outDir: 'og-plus',
+    outDir: 'og-plus/landscape',
     screenClasses: 'screen screen--2bit screen--ogv2 screen--md screen--1x',
     viewport: { width: 800, height: 480 },
   },
@@ -99,7 +99,7 @@ if (!(await isServerUp())) {
 const browser = await chromium.launch();
 try {
   for (const device of DEVICES) {
-    const out = device.outDir ? resolve(outRoot, device.outDir) : outRoot;
+    const out = resolve(outRoot, device.outDir);
     await mkdir(out, { recursive: true });
 
     for (const name of layouts) {

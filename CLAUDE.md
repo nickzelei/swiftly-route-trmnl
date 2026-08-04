@@ -170,17 +170,18 @@ to rebuild the transform first.
   `trmnlp login` session)
 - `trmnlp pull` — overwrite `src/settings.yml` from the server (no transform
   step involved, so there's no `mise run` wrapper for this one)
-- `mise run screenshots` (`npm run screenshots`) — render all four layouts to
-  `docs/screenshots/*.png` via headless Chromium against `trmnlp serve` (the
-  script spawns it if not running). **This is the visual feedback loop when
-  editing `src/*.liquid`: edit a template, run this, then Read the PNG to see
-  the change.** Routing through the dev server (not `trmnlp build`) is
-  intentional — the static `_build/` HTML is missing the `<div class="trmnl">`
-  design-system scope and the `screen_classes` CSS scoping, so it renders
-  incorrectly. The script currently hardcodes TRMNL X (1040×780,
-  `screen--v2 screen--lg`, 16-grays palette); see `scripts/screenshots.mjs`
-  for the constants and the picker class mapping if you need to check a
-  different device.
+- `mise run screenshots` (`npm run screenshots`) — render all four layouts,
+  across a device/orientation matrix (TRMNL X landscape + portrait, TRMNL OG
+  Plus landscape), to `docs/screenshots/<device>/<orientation>/*.png` via
+  headless Chromium against `trmnlp serve` (the script spawns it if not
+  running). **This is the visual feedback loop when editing `src/*.liquid`:
+  edit a template, run this, then Read the PNG to see the change.** Routing
+  through the dev server (not `trmnlp build`) is intentional — the static
+  `_build/` HTML is missing the `<div class="trmnl">` design-system scope and
+  the `screen_classes` CSS scoping, so it renders incorrectly. See the
+  `DEVICES` array in `scripts/screenshots.mjs` for the class/viewport
+  constants (sourced from `usetrmnl.com/api/models`) if you need to add or
+  check a different device.
 
 Preview uses the static sample in `.trmnlp.yml`'s `variables:` block by
 default; comment it out to poll live data, which needs `SWIFTLY_API_KEY` in

@@ -42,10 +42,13 @@ description if the approach needs revisiting.
   `title--medium`, which isn't a class the framework ships (verified against
   the real `plugins.css`) — it was a silent no-op. Dropped it.
 - `scripts/screenshots.mjs` now renders a device/orientation matrix instead
-  of a single TRMNL X landscape shot: `docs/screenshots/*.png` (TRMNL X
-  landscape, unchanged paths), `docs/screenshots/portrait/*.png` (TRMNL X
-  portrait), `docs/screenshots/og-plus/*.png` (TRMNL OG Plus landscape).
-  Device/size classes and CSS pixel dimensions came from
+  of a single TRMNL X landscape shot, nested
+  `docs/screenshots/<device>/<orientation>/<layout>.png` (e.g.
+  `docs/screenshots/trmnl-x/landscape/full.png`,
+  `docs/screenshots/trmnl-x/portrait/full.png`,
+  `docs/screenshots/og-plus/landscape/full.png`) so the path alone says what
+  each PNG is a picture of. Device/size classes and CSS pixel dimensions came
+  from
   `https://usetrmnl.com/api/models` and cross-checked against the real
   `plugins.css`/`trmnl-picker.js` rather than assumed. Also switched the
   page-load wait from `networkidle` to `load` — `networkidle` was flaky once
