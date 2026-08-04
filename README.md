@@ -190,9 +190,7 @@ columns or rows. The framework's `portrait:` and `lg:`/`hidden` responsive
 utilities pick up the slack where a fixed layout would otherwise overflow: the
 two directions reflow from side-by-side columns to a stacked column in
 portrait, and `half_vertical` only shows a second trip per direction on
-TRMNL X, where there's room for it (see
-[`docs/TODO-responsive-layouts.md`](docs/TODO-responsive-layouts.md) for the
-verification history).
+TRMNL X, where there's room for it.
 
 Screenshots are checked in under [`docs/screenshots/`](docs/screenshots/),
 nested `<device>/<orientation>/<layout>.png` (e.g.

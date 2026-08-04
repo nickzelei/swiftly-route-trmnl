@@ -1,6 +1,5 @@
-// Render each TRMNL layout to a PNG for the repo README, across the device/
-// orientation matrix required before publishing (see
-// docs/TODO-responsive-layouts.md).
+// Render each TRMNL layout to a PNG for the repo README, across the
+// TRMNL X (landscape/portrait) / TRMNL OG Plus device-orientation matrix.
 //
 // Strategy: drive `trmnlp serve` (Sinatra dev server on :4567) — it owns the
 // canonical render path that the picker UI uses. Hitting it directly means we

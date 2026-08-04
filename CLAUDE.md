@@ -196,10 +196,10 @@ template. `.github/workflows/trmnl.yml` builds the transform and runs
 out (enable by uncommenting + setting the `TRMNL_API_KEY` repo secret).
 
 All four templates are verified against TRMNL X (landscape + portrait) and
-TRMNL OG/OG Plus (landscape) — see
-[`docs/TODO-responsive-layouts.md`](docs/TODO-responsive-layouts.md) for what
-was checked and which framework `portrait:`/`lg:`/`hidden` utilities do the
-work. `half_vertical.liquid` only shows a second trip per direction on
+TRMNL OG/OG Plus (landscape) — see the [Layouts](README.md#layouts) section
+of the README for renders of each, and the responsive-scoping notes under
+Key facts below for which framework `portrait:`/`lg:`/`hidden` utilities do
+the work. `half_vertical.liquid` only shows a second trip per direction on
 `screen--lg` (TRMNL X) — TRMNL OG/OG Plus (`screen--md`) don't have the
 vertical room for it. Other TRMNL models (Kindle, Inkplate, Kobo, etc. — full
 list at `usetrmnl.com/api/models`) have not been checked.
@@ -228,3 +228,24 @@ list at `usetrmnl.com/api/models`) have not been checked.
   each poll cycle costs three Swiftly calls per installed plugin instance.
   Fine at the default 15-minute `refresh_interval`; revisit if Swiftly ever
   pushes back on request volume.
+- TRMNL's responsive/portrait CSS scoping, confirmed directly against the
+  shipped framework assets (`usetrmnl.com/api/models`, `plugins.css`,
+  `trmnl-picker.js`) rather than assumed from docs:
+  - Device/size classes come from each model's `css.classes` in the
+    `/api/models` response (TRMNL X → `screen--v2 screen--lg`, TRMNL OG Plus
+    → `screen--ogv2 screen--md`); bit-depth palette class follows the
+    model's `bit_depth` (4-bit for TRMNL X, 2-bit for OG Plus).
+  - Portrait is **not** a separate device/model — the dev-server picker just
+    appends a `screen--portrait` class, which swaps the framework's
+    `--screen-w`/`--screen-h` CSS custom properties. Any device class can be
+    combined with it.
+  - Responsive utilities compile to ordinary descendant selectors scoped to
+    the screen class (e.g.
+    `.trmnl .screen--portrait .portrait\:flex--col{...}`) — there's no real
+    media query, since the render is already per-device. Breakpoints
+    (`sm:`/`md:`/`lg:`) are mobile-first: an unprefixed utility applies at
+    every size unless a larger breakpoint overrides it.
+  - `trmnlp`'s render route (`web/views/render_html.erb`) does no layout math
+    itself — it wraps the template in `<div class="{screen_classes}">` and
+    `<div class="view view--{layout}">`; all sizing comes from the framework
+    CSS's `calc()` chain off `--screen-w`/`--screen-h`.
