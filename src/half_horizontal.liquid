@@ -1,14 +1,14 @@
 {% comment %}
   TRMNL "Half Horizontal" layout (800x240). Each route direction is a column
   showing its next trip — the stop chain over the matching time chain.
-  See trmnl/README.md for the data shape.
+  See README.md for the data shape.
 {% endcomment %}
 
 <div class="layout">
   {% if sections.size > 0 %}
-  <div class="columns">
+  <div class="columns portrait:flex--col portrait:gap--large">
     {% for sec in sections limit: 2 %}
-      <div class="column">
+      <div class="column portrait:w--full">
         <span class="title">{{ sec.title }}</span>
 
         {% if sec.trips.size > 0 %}

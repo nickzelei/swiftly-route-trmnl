@@ -194,10 +194,14 @@ template. `.github/workflows/trmnl.yml` builds the transform and runs
 `trmnlp lint`/`build` on every PR; the `push` job is present but commented
 out (enable by uncommenting + setting the `TRMNL_API_KEY` repo secret).
 
-Known templates limitation: `half_vertical` (and likely `quadrant`) overflow
-on smaller devices like the original TRMNL — see
-[`docs/TODO-responsive-layouts.md`](docs/TODO-responsive-layouts.md) for the
-plan to make templates work across every device in `usetrmnl.com/api/models`.
+All four templates are verified against TRMNL X (landscape + portrait) and
+TRMNL OG/OG Plus (landscape) — see
+[`docs/TODO-responsive-layouts.md`](docs/TODO-responsive-layouts.md) for what
+was checked and which framework `portrait:`/`lg:`/`hidden` utilities do the
+work. `half_vertical.liquid` only shows a second trip per direction on
+`screen--lg` (TRMNL X) — TRMNL OG/OG Plus (`screen--md`) don't have the
+vertical room for it. Other TRMNL models (Kindle, Inkplate, Kobo, etc. — full
+list at `usetrmnl.com/api/models`) have not been checked.
 
 ## Key facts
 

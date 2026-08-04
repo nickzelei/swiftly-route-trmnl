@@ -5,7 +5,8 @@ arrivals for any Swiftly agency + route. Built for the SF Bay Ferry Alameda
 Seaplane route (agency `sfbay-ferry`, route `19417` — the default smoketest
 target), but the agency and route are TRMNL plugin inputs, so one install of
 this recipe can be pointed at any route on any Swiftly agency you have an API
-key for. Currently only optimized for TRMNL X resolutions.
+key for. Layouts are verified on both TRMNL X and TRMNL OG/OG Plus, in
+landscape and portrait — see [Layouts](#layouts) below.
 
 ## About Swiftly
 
@@ -101,7 +102,7 @@ Everything else is a subdirectory:
 
 | Directory | What's in it |
 |---|---|
-| `scripts/` | Node tooling: `screenshots.mjs` (renders `docs/screenshots/*.png`), the transform build, and `swiftly.mjs` + `explore-routes.mjs`/`trip-updates.mjs`/`vehicle-positions.mjs` for poking the Swiftly API directly. `explore-routes.mjs` is how you find your agency's route id for step 2 below; `trip-updates.mjs` is handy for debugging the live feed. |
+| `scripts/` | Node tooling: `screenshots.mjs` (renders `docs/screenshots/**/*.png` across the TRMNL X/OG Plus × landscape/portrait matrix), the transform build, and `swiftly.mjs` + `explore-routes.mjs`/`trip-updates.mjs`/`vehicle-positions.mjs` for poking the Swiftly API directly. `explore-routes.mjs` is how you find your agency's route id for step 2 below; `trip-updates.mjs` is handy for debugging the live feed. |
 | [`docs/`](docs/) | Reference material (the Swiftly OpenAPI spec) and the screenshots below. |
 
 This is a Node repo apart from `trmnlp` itself (a Ruby gem — see the
@@ -132,7 +133,7 @@ these with `mise run <name>` (mise loads your `.env` for every task, so a
 |---|---|
 | `mise run build-transform` | Compiles `src/transform.ts` to `src/transform.js` |
 | `mise run typecheck-transform` | Typechecks `src/transform.ts` without emitting |
-| `mise run screenshots` | Renders `docs/screenshots/*.png` (rebuilds the transform first) |
+| `mise run screenshots` | Renders `docs/screenshots/**/*.png` (rebuilds the transform first) |
 | `mise run lint` | `trmnlp lint` (rebuilds the transform first) |
 | `mise run build` | `trmnlp build` — static HTML in `_build/` (rebuilds the transform first) |
 | `mise run serve` | `trmnlp serve` — live-reloading preview (rebuilds the transform first) |
@@ -185,7 +186,15 @@ In the TRMNL dashboard, fill in the plugin form fields:
 
 All four TRMNL sizes render from the same JSON payload — the templates differ
 only in how many trips they show and whether directions are arranged in
-columns or rows.
+columns or rows. The framework's `portrait:` and `lg:`/`hidden` responsive
+utilities pick up the slack where a fixed layout would otherwise overflow: the
+two directions reflow from side-by-side columns to a stacked column in
+portrait, and `half_vertical` only shows a second trip per direction on
+TRMNL X, where there's room for it (see
+[`docs/TODO-responsive-layouts.md`](docs/TODO-responsive-layouts.md) for the
+verification history).
+
+### TRMNL X — landscape (1872×1404 physical, 1040×780 CSS px)
 
 | Template | Size | Preview |
 |---|---|---|
@@ -194,14 +203,39 @@ columns or rows.
 | `src/half_vertical.liquid` | 400×480 | [![half_vertical](docs/screenshots/half_vertical.png)](docs/screenshots/half_vertical.png) |
 | `src/quadrant.liquid` | 400×240 | [![quadrant](docs/screenshots/quadrant.png)](docs/screenshots/quadrant.png) |
 
+<details>
+<summary>TRMNL X — portrait (780×1040 CSS px)</summary>
+
+| Template | Preview |
+|---|---|
+| `src/full.liquid` | <a href="docs/screenshots/portrait/full.png"><img src="docs/screenshots/portrait/full.png" width="220"></a> |
+| `src/half_horizontal.liquid` | <a href="docs/screenshots/portrait/half_horizontal.png"><img src="docs/screenshots/portrait/half_horizontal.png" width="220"></a> |
+| `src/half_vertical.liquid` | <a href="docs/screenshots/portrait/half_vertical.png"><img src="docs/screenshots/portrait/half_vertical.png" width="220"></a> |
+| `src/quadrant.liquid` | <a href="docs/screenshots/portrait/quadrant.png"><img src="docs/screenshots/portrait/quadrant.png" width="220"></a> |
+
+</details>
+
+<details>
+<summary>TRMNL OG / OG Plus — landscape (800×480)</summary>
+
+| Template | Preview |
+|---|---|
+| `src/full.liquid` | <a href="docs/screenshots/og-plus/full.png"><img src="docs/screenshots/og-plus/full.png" width="220"></a> |
+| `src/half_horizontal.liquid` | <a href="docs/screenshots/og-plus/half_horizontal.png"><img src="docs/screenshots/og-plus/half_horizontal.png" width="220"></a> |
+| `src/half_vertical.liquid` | <a href="docs/screenshots/og-plus/half_vertical.png"><img src="docs/screenshots/og-plus/half_vertical.png" width="220"></a> |
+| `src/quadrant.liquid` | <a href="docs/screenshots/og-plus/quadrant.png"><img src="docs/screenshots/og-plus/quadrant.png" width="220"></a> |
+
+</details>
+
 Previews are rendered from the sample payload in
-[`.trmnlp.yml`](.trmnlp.yml) by `trmnlp build` and screenshotted with
-headless Chromium. To regenerate after changing a template:
+[`.trmnlp.yml`](.trmnlp.yml) via `trmnlp serve` and screenshotted with
+headless Chromium — see [`scripts/screenshots.mjs`](scripts/screenshots.mjs)
+for the device/orientation matrix. To regenerate after changing a template:
 
 ```sh
 npm install                          # one time
 npx playwright install chromium      # one time
-mise run screenshots                 # writes docs/screenshots/*.png
+mise run screenshots                 # writes docs/screenshots/**/*.png
 ```
 
 ## Local development

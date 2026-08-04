@@ -1,92 +1,84 @@
-# TODO: responsive layouts across all TRMNL devices
+# Responsive layouts across TRMNL devices — resolved
 
-## Publication status
+## Status: done, pre-publication blocker cleared
 
-This is intentionally deferred to a dedicated responsiveness session. The
-public-registry automated review reported that no `lg:` or `portrait:`
-classes are present and asked for TRMNL X landscape/portrait verification.
-Do not add token responsive classes just to silence that warning: complete
-the visual pass below and use responsive utilities only where they solve an
-observed layout difference.
+The public-registry automated review reported that no `lg:` or `portrait:`
+classes were present and asked for TRMNL X landscape/portrait verification.
+This session did the visual pass and added responsive utilities only where
+the rendered evidence showed an actual layout difference — not just to
+silence the warning. See git history on this file for the original task
+description if the approach needs revisiting.
 
-Treat this as the remaining pre-publication design task. The other automated
-review items (image dithering, clickable form links, and moving outbound
-requests from the transform into polling URLs) were handled separately.
+### What was verified
 
-### Acceptance criteria for the dedicated session
+- All four layouts, rendered and visually inspected on:
+  - TRMNL X, landscape (1040×780 CSS px) and portrait (780×1040).
+  - TRMNL OG Plus (`ogv2`, 800×480), landscape only — OG hardware doesn't
+    rotate.
+- The existing busy fixture in `.trmnlp.yml` (two directions, multiple
+  trips, long stop names, a three-stop chain) — the same data used for the
+  original overflow report.
+- No clipped titles, trips, stop chains, times, or title-bar content in any
+  of the 12 (layout × device × orientation) renders.
 
-- Render and visually inspect all four layouts on TRMNL X in landscape
-  (1040×780 CSS pixels) and portrait (780×1040).
-- Render and visually inspect all four layouts on TRMNL OG/OG Plus
-  (800×480), including every half/quadrant layout crop.
-- Exercise the existing busy fixture: two directions, multiple trips, long
-  stop names, and a three-stop chain.
-- No clipped titles, trips, stop chains, times, or title-bar content.
-- Add meaningful `lg:` and/or `portrait:` framework utilities where the
-  rendered evidence calls for them.
-- Extend `scripts/screenshots.mjs` to keep the tested device/orientation
-  matrix as a repeatable regression check.
-- Regenerate the committed screenshots and run `mise run lint` plus
-  `mise run build` before considering the plugin ready to publish.
+### What changed
 
-## Problem
+- **`src/full.liquid` / `src/half_horizontal.liquid`**: the two-direction
+  `.columns` row was cramming itself into a narrow strip in portrait
+  (columns don't reflow on their own — TRMNL X portrait is 780 CSS px wide,
+  same as landscape's height). Added `portrait:flex--col portrait:gap--large`
+  on `.columns` and `portrait:w--full` on each `.column` so directions stack
+  top-to-bottom and use the full width in portrait, matching what
+  `half_vertical`/`quadrant` already did with a plain flex column.
+- **`src/half_vertical.liquid`**: this was the layout with a real overflow —
+  two directions × 2 trips (one a three-stop chain) exceeds 480px on
+  `screen--md` (TRMNL OG Plus). Rather than branching the transform per
+  device (no Liquid media queries exist to key off), the second trip in each
+  direction now carries `hidden lg:block` — hidden on `sm`/`md`, shown only
+  on `screen--lg` (TRMNL X), which is the only size class with the vertical
+  room for it. `quadrant.liquid` already only rendered one trip per
+  direction plus `data-clamp="1"`, so it needed no changes.
+- Fixed a latent bug found along the way: `full.liquid`'s title used
+  `title--medium`, which isn't a class the framework ships (verified against
+  the real `plugins.css`) — it was a silent no-op. Dropped it.
+- `scripts/screenshots.mjs` now renders a device/orientation matrix instead
+  of a single TRMNL X landscape shot: `docs/screenshots/*.png` (TRMNL X
+  landscape, unchanged paths), `docs/screenshots/portrait/*.png` (TRMNL X
+  portrait), `docs/screenshots/og-plus/*.png` (TRMNL OG Plus landscape).
+  Device/size classes and CSS pixel dimensions came from
+  `https://usetrmnl.com/api/models` and cross-checked against the real
+  `plugins.css`/`trmnl-picker.js` rather than assumed. Also switched the
+  page-load wait from `networkidle` to `load` — `networkidle` was flaky once
+  the script started spinning up many browser contexts back to back
+  (Google Fonts' preconnect never fully idles).
 
-The Liquid templates were sized for the original TRMNL (`og_plus`,
-800×480). On smaller layouts with the sample payload, content overflows:
+## Reference: how the framework's responsive scoping actually works
 
-- **`half_vertical.liquid`** (400×480) clips the first section's title
-  and the last trip. Caused by both directions carrying 2 trips, one a
-  three-stop chain — the column stack exceeds 480px and the framework
-  trims rather than scaling.
-- Other layouts likely have similar issues at the edges (e.g.
-  `quadrant` when both directions have busy trips).
+Confirmed directly against the shipped framework assets (not just docs),
+since this repo had no working example to copy from before this session:
 
-On TRMNL X (`v2`, 1872×1404 / 1040×780 in the dev-server iframe) the
-extra vertical room hides this — see [`screenshots/`](screenshots/) —
-but the templates are still brittle on the original device.
-
-## Goal
-
-One set of templates that renders correctly on every device the TRMNL
-framework supports (TRMNL OG, TRMNL X, Kindle variants, Inkplate,
-Kobo, etc. — full list at <https://usetrmnl.com/api/models>).
-
-## Approach
-
-Lean on the TRMNL framework's screen-class scoping rather than
-device-specific templates. Every render is wrapped in
-`screen screen--{palette} screen--{device} screen--{size} screen--1x`
-(see `scripts/screenshots.mjs` for the picker's class
-composition). The framework already ships size buckets — `screen--sm`,
-`screen--md`, `screen--lg` — and per-class typography/spacing scales.
-
-Things to try, in rough order of cost:
-
-1. **Use the framework's smaller text/spacing variants on `screen--md`
-   and below** for the trips list. The template currently picks
-   `label--small` / `value--tnums` unconditionally; size-scoped overrides
-   in a small `<style>` block inside the Liquid (or moved into TRMNL's
-   custom CSS field) could shrink them on small devices.
-2. **Reduce `limit:` on small sizes.** `half_vertical` currently does
-   `{% for trip in sec.trips limit: 2 %}`. A Liquid conditional keyed
-   off some indicator of available height — or just bumping it to
-   `limit: 1` for the half/quadrant cases — would prevent overflow.
-   (Liquid has no media query, so this likely needs a custom field or a
-   branch in the serverless transform.)
-3. **Truncate long stop chains.** A three-stop intermediate trip is what
-   pushes things over the edge most often. Show
-   `origin → … → destination` (drop intermediates) when the layout is
-   small.
-4. **Verify on each device size class.** The screenshot script can be
-   parameterized to render each model in `https://usetrmnl.com/api/models`
-   — make `SCREEN_CLASSES` and `VIEWPORT` per-device and emit one PNG
-   per (layout, device) pair. Useful regression artifact.
+- Device/size classes come from each model's `css.classes` in the
+  `/api/models` response (e.g. TRMNL X → `screen--v2 screen--lg`, TRMNL OG
+  Plus → `screen--ogv2 screen--md`). Bit-depth palette class follows the
+  model's `bit_depth` (4-bit for TRMNL X, 2-bit for OG Plus).
+- Portrait is **not** a separate device/model — the dev-server picker just
+  appends a `screen--portrait` class (see `trmnl-picker.js`), which swaps the
+  framework's `--screen-w`/`--screen-h` CSS custom properties. Any device
+  class can be combined with it.
+- Responsive utilities compile to ordinary descendant selectors scoped to
+  the screen class, e.g. `.trmnl .screen--portrait .portrait\:flex--col{...}`
+  — there's no real media query involved, since the render is already
+  per-device. Breakpoints (`sm:`/`md:`/`lg:`) are mobile-first: an unprefixed
+  utility applies at every size unless a larger breakpoint overrides it.
+- `trmnlp`'s render route (`web/views/render_html.erb`) does no layout math
+  itself — it just wraps the template in `<div class="{screen_classes}">`
+  and `<div class="view view--{layout}">`; all sizing comes from the
+  framework CSS's `calc()` chain off `--screen-w`/`--screen-h`.
 
 ## Pointers
 
 - Templates: [`src/*.liquid`](../src/)
-- Sample payload (the content currently overflowing):
-  `.trmnlp.yml` → `variables:` block
+- Sample payload: `.trmnlp.yml` → `variables:` block
 - Screenshot tool: [`scripts/screenshots.mjs`](../scripts/screenshots.mjs)
 - TRMNL Framework docs: <https://usetrmnl.com/framework>
 - Device catalog (canonical class names + dimensions):

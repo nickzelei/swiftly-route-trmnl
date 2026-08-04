@@ -1,15 +1,15 @@
 {% comment %}
-  TRMNL "Full" layout (800x480). Renders the JSON the Cloudflare Worker
-  returns; see trmnl/README.md for the shape. Each route direction is a column;
+  TRMNL "Full" layout (800x480). Renders the JSON the serverless transform
+  returns; see README.md for the shape. Each route direction is a column;
   each trip is one row — its stop chain over the matching time chain.
 {% endcomment %}
 
 <div class="layout">
   {% if sections.size > 0 %}
-  <div class="columns">
+  <div class="columns portrait:flex--col portrait:gap--large">
     {% for sec in sections limit: 2 %}
-      <div class="column gap--xlarge">
-        <span class="title title--medium">{{ sec.title }}</span>
+      <div class="column gap--xlarge portrait:w--full">
+        <span class="title">{{ sec.title }}</span>
 
         {% if sec.trips.size > 0 %}
           {% for trip in sec.trips limit: 4 %}
