@@ -1,7 +1,7 @@
 {
   "name": "sfbayferry-trmnl",
   "private": true,
-  "description": "Node tooling for the TRMNL plugin (compiles src/transform.ts to src/transform.js in place, renders docs/screenshots/*.png via headless Chromium) plus the Swiftly API exploration scripts (scripts/explore-routes.mjs etc.). The plugin itself (src/*.liquid, settings.yml) is otherwise a trmnlp (Ruby) project.",
+  "description": "Node tooling for the TRMNL plugin (compiles src/transform.ts to src/transform.js in place, renders docs/screenshots/<device>/<orientation>/*.png via headless Chromium) plus the Swiftly API exploration scripts (scripts/explore-routes.mjs etc.). The plugin itself (src/*.liquid, settings.yml) is otherwise a trmnlp (Ruby) project.",
   "type": "module",
   "scripts": {
     "screenshots": "node scripts/screenshots.mjs",

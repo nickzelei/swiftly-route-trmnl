@@ -5,8 +5,8 @@ arrivals for any Swiftly agency + route. Built for the SF Bay Ferry Alameda
 Seaplane route (agency `sfbay-ferry`, route `19417` — the default smoketest
 target), but the agency and route are TRMNL plugin inputs, so one install of
 this recipe can be pointed at any route on any Swiftly agency you have an API
-key for. Layouts are verified on both TRMNL X and TRMNL OG/OG Plus, in
-landscape and portrait — see [Layouts](#layouts) below.
+key for. Layouts are verified on TRMNL X (landscape and portrait) and TRMNL
+OG/OG Plus (landscape) — see [Layouts](#layouts) below.
 
 ## About Swiftly
 
@@ -89,7 +89,7 @@ The plugin itself lives at the repo root (it's the one real deployable here):
 
 | File | Shows |
 |---|---|
-| `src/full.liquid` | Full (800×480) layout — up to 4 trips per direction |
+| `src/full.liquid` | Full (800×480) layout — 2 trips per direction, up to 4 on TRMNL X landscape |
 | `src/half_horizontal.liquid` | Half Horizontal (800×240) — next trip per direction |
 | `src/half_vertical.liquid` | Half Vertical (400×480) — up to 2 trips per direction, stacked |
 | `src/quadrant.liquid` | Quadrant (400×240) — next trip per direction, stacked |

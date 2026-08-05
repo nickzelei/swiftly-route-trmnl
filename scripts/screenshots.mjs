@@ -39,23 +39,25 @@ const layouts = ['full', 'half_horizontal', 'half_vertical', 'quadrant'];
 // `--screen-h` CSS custom properties (see plugins.css's `.screen--portrait`
 // rule). The viewport passed to Playwright must be swapped to match, since
 // nothing else resizes the browser window for us.
+const TRMNL_X_LANDSCAPE_VIEWPORT = { width: 1040, height: 780 };
+
 const DEVICES = [
   {
-    key: 'trmnl-x-landscape',
     label: 'TRMNL X — landscape',
     outDir: 'trmnl-x/landscape',
     screenClasses: 'screen screen--4bit screen--v2 screen--lg screen--1x',
-    viewport: { width: 1040, height: 780 },
+    viewport: TRMNL_X_LANDSCAPE_VIEWPORT,
   },
   {
-    key: 'trmnl-x-portrait',
     label: 'TRMNL X — portrait',
     outDir: 'trmnl-x/portrait',
     screenClasses: 'screen screen--4bit screen--v2 screen--lg screen--portrait screen--1x',
-    viewport: { width: 780, height: 1040 },
+    // Portrait swaps --screen-w/--screen-h (see comment above), so the
+    // viewport is the landscape one with width/height swapped, not a
+    // separately maintained literal.
+    viewport: { width: TRMNL_X_LANDSCAPE_VIEWPORT.height, height: TRMNL_X_LANDSCAPE_VIEWPORT.width },
   },
   {
-    key: 'og-plus-landscape',
     label: 'TRMNL OG Plus — landscape',
     outDir: 'og-plus/landscape',
     screenClasses: 'screen screen--2bit screen--ogv2 screen--md screen--1x',
@@ -95,41 +97,65 @@ if (!(await isServerUp())) {
   await waitForServer();
 }
 
-const browser = await chromium.launch();
-try {
-  for (const device of DEVICES) {
-    const out = resolve(outRoot, device.outDir);
-    await mkdir(out, { recursive: true });
-
-    for (const name of layouts) {
-      const ctx = await browser.newContext({
-        viewport: device.viewport,
-        deviceScaleFactor: 2, // 2x for crisp README rendering on high-DPI screens.
-      });
-      const page = await ctx.newPage();
-      const url = `${SERVER_URL}/render/${name}.html?screen_classes=${encodeURIComponent(device.screenClasses)}`;
-      // 'load' rather than 'networkidle': the page keeps a Google Fonts
-      // preconnect alive that never goes fully idle, which made
-      // 'networkidle' flaky (intermittent 30s timeouts) once this script
-      // started spinning up many browser contexts back to back for the
-      // device matrix. The explicit font/timeout waits below cover the
-      // same "has everything actually rendered" concern.
-      await page.goto(url, { waitUntil: 'load' });
-      // Wait for web fonts (Inter via @font-face) AND for TRMNL's plugins.js
-      // to run its `data-value-fit` auto-shrink — without this the
-      // `value--mega` times overflow before they get resized.
-      await page.evaluate(() => document.fonts?.ready);
-      await page.waitForTimeout(1500);
-      const file = `${out}/${name}.png`;
-      // Screenshot the `.view` element (not the whole page) so half/quadrant
-      // layouts get tight crops. On the device those layouts only occupy a
-      // portion of the screen with the rest going to other plugins in the
-      // playlist — for README purposes the dead space just adds noise.
-      await page.locator('.view').screenshot({ path: file });
-      console.log(`wrote ${file} (${device.label})`);
-      await ctx.close();
+// Runs `worker` over `items` with at most `limit` in flight at once — plain
+// Promise.all across all 12 device/layout combos was fine correctness-wise,
+// but spinning up that many browser contexts simultaneously risks flakiness
+// under CPU/memory pressure on the runner, so cap concurrency instead.
+async function withConcurrency(items, limit, worker) {
+  const queue = [...items];
+  async function runNext() {
+    while (queue.length > 0) {
+      const item = queue.shift();
+      await worker(item);
     }
   }
+  await Promise.all(Array.from({ length: limit }, runNext));
+}
+
+async function screenshotOne(browser, device, name) {
+  const out = resolve(outRoot, device.outDir);
+  const ctx = await browser.newContext({
+    viewport: device.viewport,
+    deviceScaleFactor: 2, // 2x for crisp README rendering on high-DPI screens.
+  });
+  const page = await ctx.newPage();
+  const url = `${SERVER_URL}/render/${name}.html?screen_classes=${encodeURIComponent(device.screenClasses)}`;
+  try {
+    // 'load' rather than 'networkidle': the page keeps a Google Fonts
+    // preconnect alive that never goes fully idle, which made 'networkidle'
+    // flaky (intermittent 30s timeouts) once this script started spinning up
+    // many browser contexts back to back for the device matrix. The explicit
+    // font/timeout waits below cover the same "has everything actually
+    // rendered" concern.
+    await page.goto(url, { waitUntil: 'load' });
+    // Wait for web fonts (Inter via @font-face) AND for TRMNL's plugins.js
+    // to run its `data-value-fit` auto-shrink — without this the
+    // `value--mega` times overflow before they get resized.
+    await page.evaluate(() => document.fonts?.ready);
+    await page.waitForTimeout(1500);
+    const file = `${out}/${name}.png`;
+    // Screenshot the `.view` element (not the whole page) so half/quadrant
+    // layouts get tight crops. On the device those layouts only occupy a
+    // portion of the screen with the rest going to other plugins in the
+    // playlist — for README purposes the dead space just adds noise.
+    await page.locator('.view').screenshot({ path: file });
+    console.log(`wrote ${file} (${device.label})`);
+  } finally {
+    await ctx.close();
+  }
+}
+
+const browser = await chromium.launch();
+try {
+  const outDirs = [...new Set(DEVICES.map(device => device.outDir))];
+  await Promise.all(outDirs.map(outDir => mkdir(resolve(outRoot, outDir), { recursive: true })));
+
+  const jobs = DEVICES.flatMap(device => layouts.map(name => ({ device, name })));
+  // 4 in flight at a time: each device/layout combo is an independent
+  // browser context, so this cuts the sequential ~24s+ wall-clock time on
+  // the full 3-device x 4-layout matrix roughly 4x without launching all 12
+  // contexts at once.
+  await withConcurrency(jobs, 4, ({ device, name }) => screenshotOne(browser, device, name));
 } finally {
   await browser.close();
   if (serverProc) serverProc.kill('SIGTERM');

@@ -29,7 +29,7 @@ description = "Typecheck src/transform.ts without emitting"
 run = "npm run typecheck:transform"
 
 [tasks.screenshots]
-description = "Render docs/screenshots/*.png from the current templates (spawns trmnlp serve if needed)"
+description = "Render docs/screenshots/<device>/<orientation>/*.png from the current templates (spawns trmnlp serve if needed)"
 depends = ["build-transform"]
 run = "npm run screenshots"
 

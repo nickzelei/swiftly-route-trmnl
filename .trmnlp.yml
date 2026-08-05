@@ -60,6 +60,8 @@ variables:
               mins: 54
     - title: To San Francisco Ferry Building Gate F
       direction_id: "1"
+      # Four trips here (the max any template's `limit:` allows) so previews
+      # actually exercise the busiest case, not just the 2-trip common case.
       trips:
         - vehicle: Carina
           stops:
@@ -81,6 +83,22 @@ variables:
             - name: San Francisco Ferry Building Gate F
               time: 4:25 PM
               mins: 62
+        - vehicle: Delphinus
+          stops:
+            - name: Alameda Seaplane Lagoon Ferry Terminal
+              time: 4:35 PM
+              mins: 72
+            - name: San Francisco Ferry Building Gate E
+              time: 4:51 PM
+              mins: 88
+        - vehicle: Pisces
+          stops:
+            - name: Alameda Seaplane Lagoon Ferry Terminal
+              time: 5:05 PM
+              mins: 102
+            - name: San Francisco Ferry Building Gate E
+              time: 5:21 PM
+              mins: 118
 
   # The trmnl.* namespace (device + user context).
   trmnl: {}
