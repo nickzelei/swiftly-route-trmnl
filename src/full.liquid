@@ -1,14 +1,13 @@
 {% comment %}
   TRMNL "Full" layout (800x480). Renders the JSON the serverless transform
   returns; see README.md for the shape. Each route direction is a column;
-  each trip is one row — its stop chain over the matching time chain. Only
-  the first 2 trips per direction render by default; the 3rd/4th
-  (`limit: 4` below) only show on TRMNL X landscape (`lg:block`, forced back
-  to hidden in portrait via `lg:portrait:hidden`) — verified by screenshot to
-  be the one size/orientation with enough vertical room for all 4 without
-  overflowing. Two side-by-side columns of 4 rows stacks into two *stacked*
-  columns of 4 rows in portrait, which overflows even TRMNL X's taller
-  portrait canvas. See README.md.
+  each trip is one row — its stop chain over the matching time chain. Up to
+  4 trips render per direction (`limit: 4` below is a sane ceiling on DOM
+  size, not a display target); the Overflow engine (`data-overflow="true"`)
+  measures each column's real height at render time and trims trailing
+  rows itself, showing "+N more" (`data-overflow-counter="true"`) rather
+  than dropping them silently, instead of a hardcoded breakpoint list —
+  see reference/modulations.md in the trmnl-framework skill.
 {% endcomment %}
 
 <div class="layout">
@@ -19,15 +18,17 @@
         <span class="title">{{ sec.title }}</span>
 
         {% if sec.trips.size > 0 %}
-          {% for trip in sec.trips limit: 4 %}
-            <div class="item{% if forloop.index > 2 %} hidden lg:block lg:portrait:hidden{% endif %}">
-              <div class="content gap--small">
-                <span class="label label--large">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.name }}{% endfor %}</span>
-                <span class="value value--mega value--tnums" data-value-fit="true">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.time }}{% endfor %}</span>
-                <span class="label label--large">{{ trip.vehicle }}</span>
+          <div class="flex flex--col gap--xlarge" data-overflow="true" data-overflow-counter="true">
+            {% for trip in sec.trips limit: 4 %}
+              <div class="item">
+                <div class="content gap--small">
+                  <span class="label label--large">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.name }}{% endfor %}</span>
+                  <span class="value value--mega value--tnums" data-value-fit="true">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.time }}{% endfor %}</span>
+                  <span class="label label--large">{{ trip.vehicle }}</span>
+                </div>
               </div>
-            </div>
-          {% endfor %}
+            {% endfor %}
+          </div>
         {% else %}
           <span class="label">No upcoming sailings</span>
         {% endif %}
@@ -41,7 +42,7 @@
 </div>
 
 <div class="title_bar">
-  <img class="image image-dither" src="https://usetrmnl.com/images/plugins/private_plugin.svg" />
+  <img class="image image--adaptive" src="https://usetrmnl.com/images/plugins/private_plugin.svg" />
   <span class="title">{{ route_name | default: "Ferry" }}</span>
   <span class="instance">Updated {{ updated_at }}</span>
 </div>

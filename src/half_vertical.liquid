@@ -4,7 +4,18 @@
   matching time chain. Up to 2 trips render per direction, but only the first
   is shown on screen--md and below (`hidden lg:block` on the rest) — TRMNL X's
   extra vertical room is the only size with headroom for a second trip without
-  the stack overflowing 480px. See README.md.
+  the stack overflowing 480px.
+
+  This intentionally does NOT use the Overflow engine (`data-overflow`,
+  see full.liquid and reference/modulations.md in the trmnl-framework
+  skill): tested directly, two independent `data-overflow` containers
+  stacked in normal document flow (as opposed to side-by-side inside a
+  single `.columns`, which is what full.liquid uses and where it works
+  correctly) corrupt each other's layout — the second section's content
+  renders shifted left and clipped, reproducible with a >4s render wait,
+  so it isn't a screenshot-timing artifact. Revisit if a future framework
+  version fixes multi-container Overflow outside `.columns`. See
+  README.md.
 {% endcomment %}
 
 <div class="layout">
@@ -37,7 +48,7 @@
 </div>
 
 <div class="title_bar">
-  <img class="image image-dither" src="https://usetrmnl.com/images/plugins/private_plugin.svg" />
+  <img class="image image--adaptive" src="https://usetrmnl.com/images/plugins/private_plugin.svg" />
   <span class="title">{{ route_name | default: "Ferry" }}</span>
   <span class="instance">Updated {{ updated_at }}</span>
 </div>
