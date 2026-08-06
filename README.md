@@ -195,49 +195,38 @@ TRMNL X, where there's room for it.
 Screenshots are checked in under [`docs/screenshots/`](docs/screenshots/),
 nested `<device>/<orientation>/<layout>.png` (e.g.
 `docs/screenshots/trmnl-x/landscape/full.png`), so the path alone says what
-you're looking at.
+you're looking at. Click any thumbnail for the full-resolution PNG.
+`full.liquid` fills the entire e-ink screen so TRMNL renders it borderless;
+the other three layouts are meant to sit as one tile in a multi-plugin
+playlist, so TRMNL bakes a rounded tile border into those renders — that
+difference between layouts is expected, not a bug.
 
 ### TRMNL X — landscape (1872×1404 physical, 1040×780 CSS px)
 
-**`src/full.liquid`** — 800×480
-![full](docs/screenshots/trmnl-x/landscape/full.png)
-
-**`src/half_horizontal.liquid`** — 800×240
-![half_horizontal](docs/screenshots/trmnl-x/landscape/half_horizontal.png)
-
-**`src/half_vertical.liquid`** — 400×480
-![half_vertical](docs/screenshots/trmnl-x/landscape/half_vertical.png)
-
-**`src/quadrant.liquid`** — 400×240
-![quadrant](docs/screenshots/trmnl-x/landscape/quadrant.png)
+| Layout | Size | Preview |
+|---|---|---|
+| `src/full.liquid` | 800×480 | [<img src="docs/screenshots/trmnl-x/landscape/full.png" width="240">](docs/screenshots/trmnl-x/landscape/full.png) |
+| `src/half_horizontal.liquid` | 800×240 | [<img src="docs/screenshots/trmnl-x/landscape/half_horizontal.png" width="240">](docs/screenshots/trmnl-x/landscape/half_horizontal.png) |
+| `src/half_vertical.liquid` | 400×480 | [<img src="docs/screenshots/trmnl-x/landscape/half_vertical.png" width="240">](docs/screenshots/trmnl-x/landscape/half_vertical.png) |
+| `src/quadrant.liquid` | 400×240 | [<img src="docs/screenshots/trmnl-x/landscape/quadrant.png" width="240">](docs/screenshots/trmnl-x/landscape/quadrant.png) |
 
 ### TRMNL X — portrait (780×1040 CSS px)
 
-**`src/full.liquid`**
-<img src="docs/screenshots/trmnl-x/portrait/full.png" width="360">
-
-**`src/half_horizontal.liquid`**
-<img src="docs/screenshots/trmnl-x/portrait/half_horizontal.png" width="360">
-
-**`src/half_vertical.liquid`**
-<img src="docs/screenshots/trmnl-x/portrait/half_vertical.png" width="360">
-
-**`src/quadrant.liquid`**
-<img src="docs/screenshots/trmnl-x/portrait/quadrant.png" width="360">
+| Layout | Preview |
+|---|---|
+| `src/full.liquid` | [<img src="docs/screenshots/trmnl-x/portrait/full.png" width="160">](docs/screenshots/trmnl-x/portrait/full.png) |
+| `src/half_horizontal.liquid` | [<img src="docs/screenshots/trmnl-x/portrait/half_horizontal.png" width="160">](docs/screenshots/trmnl-x/portrait/half_horizontal.png) |
+| `src/half_vertical.liquid` | [<img src="docs/screenshots/trmnl-x/portrait/half_vertical.png" width="160">](docs/screenshots/trmnl-x/portrait/half_vertical.png) |
+| `src/quadrant.liquid` | [<img src="docs/screenshots/trmnl-x/portrait/quadrant.png" width="160">](docs/screenshots/trmnl-x/portrait/quadrant.png) |
 
 ### TRMNL OG / OG Plus — landscape (800×480)
 
-**`src/full.liquid`**
-![full](docs/screenshots/og-plus/landscape/full.png)
-
-**`src/half_horizontal.liquid`**
-![half_horizontal](docs/screenshots/og-plus/landscape/half_horizontal.png)
-
-**`src/half_vertical.liquid`**
-![half_vertical](docs/screenshots/og-plus/landscape/half_vertical.png)
-
-**`src/quadrant.liquid`**
-![quadrant](docs/screenshots/og-plus/landscape/quadrant.png)
+| Layout | Size | Preview |
+|---|---|---|
+| `src/full.liquid` | 800×480 | [<img src="docs/screenshots/og-plus/landscape/full.png" width="240">](docs/screenshots/og-plus/landscape/full.png) |
+| `src/half_horizontal.liquid` | 800×240 | [<img src="docs/screenshots/og-plus/landscape/half_horizontal.png" width="240">](docs/screenshots/og-plus/landscape/half_horizontal.png) |
+| `src/half_vertical.liquid` | 400×480 | [<img src="docs/screenshots/og-plus/landscape/half_vertical.png" width="240">](docs/screenshots/og-plus/landscape/half_vertical.png) |
+| `src/quadrant.liquid` | 400×240 | [<img src="docs/screenshots/og-plus/landscape/quadrant.png" width="240">](docs/screenshots/og-plus/landscape/quadrant.png) |
 
 Previews are rendered from the sample payload in
 [`.trmnlp.yml`](.trmnlp.yml) via `trmnlp serve` and screenshotted with
