@@ -1,19 +1,26 @@
 {% comment %}
-  TRMNL "Full" layout (800x480). Renders the JSON the Cloudflare Worker
-  returns; see trmnl/README.md for the shape. Each route direction is a column;
-  each trip is one row — its stop chain over the matching time chain.
+  TRMNL "Full" layout (800x480). Renders the JSON the serverless transform
+  returns; see README.md for the shape. Each route direction is a column;
+  each trip is one row — its stop chain over the matching time chain. Only
+  the first 2 trips per direction render by default; the 3rd/4th
+  (`limit: 4` below) only show on TRMNL X landscape (`lg:block`, forced back
+  to hidden in portrait via `lg:portrait:hidden`) — verified by screenshot to
+  be the one size/orientation with enough vertical room for all 4 without
+  overflowing. Two side-by-side columns of 4 rows stacks into two *stacked*
+  columns of 4 rows in portrait, which overflows even TRMNL X's taller
+  portrait canvas. See README.md.
 {% endcomment %}
 
 <div class="layout">
   {% if sections.size > 0 %}
-  <div class="columns">
+  <div class="columns portrait:flex--col portrait:gap--large">
     {% for sec in sections limit: 2 %}
-      <div class="column gap--xlarge">
-        <span class="title title--medium">{{ sec.title }}</span>
+      <div class="column gap--xlarge portrait:w--full">
+        <span class="title">{{ sec.title }}</span>
 
         {% if sec.trips.size > 0 %}
           {% for trip in sec.trips limit: 4 %}
-            <div class="item">
+            <div class="item{% if forloop.index > 2 %} hidden lg:block lg:portrait:hidden{% endif %}">
               <div class="content gap--small">
                 <span class="label label--large">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.name }}{% endfor %}</span>
                 <span class="value value--mega value--tnums" data-value-fit="true">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.time }}{% endfor %}</span>

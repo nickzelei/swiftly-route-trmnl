@@ -5,7 +5,8 @@ arrivals for any Swiftly agency + route. Built for the SF Bay Ferry Alameda
 Seaplane route (agency `sfbay-ferry`, route `19417` — the default smoketest
 target), but the agency and route are TRMNL plugin inputs, so one install of
 this recipe can be pointed at any route on any Swiftly agency you have an API
-key for. Currently only optimized for TRMNL X resolutions.
+key for. Layouts are verified on TRMNL X (landscape and portrait) and TRMNL
+OG/OG Plus (landscape) — see [Layouts](#layouts) below.
 
 ## About Swiftly
 
@@ -88,7 +89,7 @@ The plugin itself lives at the repo root (it's the one real deployable here):
 
 | File | Shows |
 |---|---|
-| `src/full.liquid` | Full (800×480) layout — up to 4 trips per direction |
+| `src/full.liquid` | Full (800×480) layout — 2 trips per direction, up to 4 on TRMNL X landscape |
 | `src/half_horizontal.liquid` | Half Horizontal (800×240) — next trip per direction |
 | `src/half_vertical.liquid` | Half Vertical (400×480) — up to 2 trips per direction, stacked |
 | `src/quadrant.liquid` | Quadrant (400×240) — next trip per direction, stacked |
@@ -101,7 +102,7 @@ Everything else is a subdirectory:
 
 | Directory | What's in it |
 |---|---|
-| `scripts/` | Node tooling: `screenshots.mjs` (renders `docs/screenshots/*.png`), the transform build, and `swiftly.mjs` + `explore-routes.mjs`/`trip-updates.mjs`/`vehicle-positions.mjs` for poking the Swiftly API directly. `explore-routes.mjs` is how you find your agency's route id for step 2 below; `trip-updates.mjs` is handy for debugging the live feed. |
+| `scripts/` | Node tooling: `screenshots.mjs` (renders `docs/screenshots/**/*.png` across the TRMNL X/OG Plus × landscape/portrait matrix), the transform build, and `swiftly.mjs` + `explore-routes.mjs`/`trip-updates.mjs`/`vehicle-positions.mjs` for poking the Swiftly API directly. `explore-routes.mjs` is how you find your agency's route id for step 2 below; `trip-updates.mjs` is handy for debugging the live feed. |
 | [`docs/`](docs/) | Reference material (the Swiftly OpenAPI spec) and the screenshots below. |
 
 This is a Node repo apart from `trmnlp` itself (a Ruby gem — see the
@@ -132,7 +133,7 @@ these with `mise run <name>` (mise loads your `.env` for every task, so a
 |---|---|
 | `mise run build-transform` | Compiles `src/transform.ts` to `src/transform.js` |
 | `mise run typecheck-transform` | Typechecks `src/transform.ts` without emitting |
-| `mise run screenshots` | Renders `docs/screenshots/*.png` (rebuilds the transform first) |
+| `mise run screenshots` | Renders `docs/screenshots/**/*.png` (rebuilds the transform first) |
 | `mise run lint` | `trmnlp lint` (rebuilds the transform first) |
 | `mise run build` | `trmnlp build` — static HTML in `_build/` (rebuilds the transform first) |
 | `mise run serve` | `trmnlp serve` — live-reloading preview (rebuilds the transform first) |
@@ -185,23 +186,68 @@ In the TRMNL dashboard, fill in the plugin form fields:
 
 All four TRMNL sizes render from the same JSON payload — the templates differ
 only in how many trips they show and whether directions are arranged in
-columns or rows.
+columns or rows. The framework's `portrait:` and `lg:`/`hidden` responsive
+utilities pick up the slack where a fixed layout would otherwise overflow: the
+two directions reflow from side-by-side columns to a stacked column in
+portrait, and `half_vertical` only shows a second trip per direction on
+TRMNL X, where there's room for it.
 
-| Template | Size | Preview |
-|---|---|---|
-| `src/full.liquid` | 800×480 | [![full](docs/screenshots/full.png)](docs/screenshots/full.png) |
-| `src/half_horizontal.liquid` | 800×240 | [![half_horizontal](docs/screenshots/half_horizontal.png)](docs/screenshots/half_horizontal.png) |
-| `src/half_vertical.liquid` | 400×480 | [![half_vertical](docs/screenshots/half_vertical.png)](docs/screenshots/half_vertical.png) |
-| `src/quadrant.liquid` | 400×240 | [![quadrant](docs/screenshots/quadrant.png)](docs/screenshots/quadrant.png) |
+Screenshots are checked in under [`docs/screenshots/`](docs/screenshots/),
+nested `<device>/<orientation>/<layout>.png` (e.g.
+`docs/screenshots/trmnl-x/landscape/full.png`), so the path alone says what
+you're looking at.
+
+### TRMNL X — landscape (1872×1404 physical, 1040×780 CSS px)
+
+**`src/full.liquid`** — 800×480
+![full](docs/screenshots/trmnl-x/landscape/full.png)
+
+**`src/half_horizontal.liquid`** — 800×240
+![half_horizontal](docs/screenshots/trmnl-x/landscape/half_horizontal.png)
+
+**`src/half_vertical.liquid`** — 400×480
+![half_vertical](docs/screenshots/trmnl-x/landscape/half_vertical.png)
+
+**`src/quadrant.liquid`** — 400×240
+![quadrant](docs/screenshots/trmnl-x/landscape/quadrant.png)
+
+### TRMNL X — portrait (780×1040 CSS px)
+
+**`src/full.liquid`**
+<img src="docs/screenshots/trmnl-x/portrait/full.png" width="360">
+
+**`src/half_horizontal.liquid`**
+<img src="docs/screenshots/trmnl-x/portrait/half_horizontal.png" width="360">
+
+**`src/half_vertical.liquid`**
+<img src="docs/screenshots/trmnl-x/portrait/half_vertical.png" width="360">
+
+**`src/quadrant.liquid`**
+<img src="docs/screenshots/trmnl-x/portrait/quadrant.png" width="360">
+
+### TRMNL OG / OG Plus — landscape (800×480)
+
+**`src/full.liquid`**
+![full](docs/screenshots/og-plus/landscape/full.png)
+
+**`src/half_horizontal.liquid`**
+![half_horizontal](docs/screenshots/og-plus/landscape/half_horizontal.png)
+
+**`src/half_vertical.liquid`**
+![half_vertical](docs/screenshots/og-plus/landscape/half_vertical.png)
+
+**`src/quadrant.liquid`**
+![quadrant](docs/screenshots/og-plus/landscape/quadrant.png)
 
 Previews are rendered from the sample payload in
-[`.trmnlp.yml`](.trmnlp.yml) by `trmnlp build` and screenshotted with
-headless Chromium. To regenerate after changing a template:
+[`.trmnlp.yml`](.trmnlp.yml) via `trmnlp serve` and screenshotted with
+headless Chromium — see [`scripts/screenshots.mjs`](scripts/screenshots.mjs)
+for the device/orientation matrix. To regenerate after changing a template:
 
 ```sh
 npm install                          # one time
 npx playwright install chromium      # one time
-mise run screenshots                 # writes docs/screenshots/*.png
+mise run screenshots                 # writes docs/screenshots/<device>/<orientation>/*.png
 ```
 
 ## Local development

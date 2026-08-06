@@ -1,7 +1,10 @@
 {% comment %}
   TRMNL "Half Vertical" layout (400x480). A mobile-style column stack: the
-  route's two directions stacked top/bottom, each shows up to 2 trips — a
-  stop chain over the matching time chain. See trmnl/README.md.
+  route's two directions stacked top/bottom, each shows a stop chain over the
+  matching time chain. Up to 2 trips render per direction, but only the first
+  is shown on screen--md and below (`hidden lg:block` on the rest) — TRMNL X's
+  extra vertical room is the only size with headroom for a second trip without
+  the stack overflowing 480px. See README.md.
 {% endcomment %}
 
 <div class="layout">
@@ -13,7 +16,7 @@
 
         {% if sec.trips.size > 0 %}
           {% for trip in sec.trips limit: 2 %}
-            <div class="item">
+            <div class="item{% unless forloop.first %} hidden lg:block{% endunless %}">
               <div class="content">
                 <span class="label label--small">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.name }}{% endfor %}</span>
                 <span class="value value--tnums" data-value-fit="true">{% for stop in trip.stops %}{% unless forloop.first %} &rarr; {% endunless %}{{ stop.time }}{% endfor %}</span>
