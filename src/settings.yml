@@ -59,4 +59,5 @@ custom_fields:
   description: The numeric route id you wish to poll. Not sure what it is? Run scripts/explore-routes.mjs from the GitHub repo (linked above) with your Swiftly API key and agency to list every route id for your agency.
   group: Route
 name: Swiftly
+description: Upcoming Transit Departures
 refresh_interval: 15
