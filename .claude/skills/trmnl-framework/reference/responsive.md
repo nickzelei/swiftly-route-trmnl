@@ -1,10 +1,10 @@
 <!-- ============================================================
-     source: https://trmnl.com/framework/docs/3.1/responsive.md
+     source: https://trmnl.com/framework/docs/3.2/responsive
      ============================================================ -->
 
 # Responsive
 
-The Responsive system provides two complementary approaches for creating adaptive layouts: **Size-based** breakpoints that respond to screen dimensions, and **Bit-depth** variants that adapt to color capabilities. Together, they enable precise control over how your content appears across TRMNL's diverse range of devices.
+The Responsive system adapts a layout to the device it renders on. **Size-based** breakpoints follow the size class each device carries, and **Bit-depth** variants follow its color capabilities. Combine them to control how your content appears across TRMNL's range of devices.
 
 ## Component Support
 
@@ -14,18 +14,26 @@ This table shows which responsive features each framework component supports. Us
 
 | Component | Size | Orientation | Bit-Depth | Example Usage |
 | --- | --- | --- | --- | --- |
-| Background | Yes | Yes | Auto | `md:bg--gray-50` |
-| Border | No | No | Auto | `border--h-3 (auto adapts)` |
-| Text | Yes | Yes | Auto | `lg:2bit:text--center` |
+| Background | Yes | Yes | Yes | `md:2bit:bg--gray-50` |
+| Border | No | No | Auto | `border--h-30 (auto adapts)` |
+| Text | Yes | Yes | Yes | `lg:2bit:text--center` |
 | Visibility | Yes | Yes | Yes | `sm:1bit:hidden` |
-| Value | Yes | Yes | No | `md:value--large` |
+| Value | Yes | Yes | Yes | `lg:2bit:value--xlarge` |
 | Label | Yes | Yes | Yes | `md:portrait:2bit:label--filled` |
-| Spacing | Yes | Yes | No | `md:p--large, lg:m--xlarge, md:portrait:my--24` |
+| Title | Yes | Yes | Yes | `md:2bit:title--large` |
+| Description | Yes | Yes | Yes | `portrait:description--large` |
+| Content | Yes | Yes | Yes | `lg:portrait:content--large` |
+| Font Weight | Yes | Yes | Yes | `md:1bit:text--bold` |
+| Text Stroke | No | No | Yes | `1bit:text-stroke--large` |
+| Image Stroke | No | No | Yes | `2bit:image-stroke--large` |
+| Spacing | Yes | Yes | No | `md:p--16, lg:m--32, md:portrait:my--24` |
 | Layout | Yes | Yes | No | `md:layout--row, lg:layout--col` |
 | Gap | Yes | Yes | No | `md:gap--large, lg:gap--xlarge` |
-| Flexbox | Yes | Yes | No | `md:flex--center, portrait:flex--col` |
+| Flexbox | Yes | Yes | No | `md:flex--row, portrait:flex--col` |
 | Rounded | Yes | Yes | No | `md:rounded--large, lg:rounded--xlarge` |
-| Size | Yes | Yes | No | `md:w--large, lg:h--full` |
+| Aspect Ratio | Yes | Yes | No | `md:aspect--1/1, lg:landscape:aspect--16/9` |
+| Table | Yes | Yes | No | `lg:table--base, lg:portrait:table--xlarge` |
+| Size | Yes | Yes | No | `md:w--36, lg:h--full` |
 | Grid | Yes | Yes | No | `md:grid--cols-3, md:portrait:col--span-2` |
 | Clamp | Yes | Yes | No | `data-clamp-md-portrait="3"` |
 | Overflow (Smart columns) | Yes | Yes | No | `data-overflow-max-cols-lg="4"` |
@@ -42,63 +50,55 @@ No Not supported
 
 ### How It Works
 
-Each device automatically sets a size class (e.g., `screen--md`) based on its width, activating the appropriate responsive utilities.
+Every device carries a size class (e.g., `screen--md`) that activates the matching responsive utilities. The class comes from the device model, not from a measured width, so pick a breakpoint by the devices you want to hit rather than by a pixel count.
 
 The system follows a mobile-first approach. When you use `md:value--large`, it applies on medium screens and larger.
 
 ### Basic Usage
 
-Prefix any utility class with a breakpoint name followed by a colon. The style applies
- at that breakpoint and all larger sizes.
-
-Responsive Value
-
-ResponsiveSize Based
+Prefix any utility class with a breakpoint name followed by a colon. The style applies at that breakpoint and all larger sizes.
 
 This example shows progressive sizing: the text starts at regular size, becomes large on medium screens (md:) and larger, then becomes xlarge on large screens (lg:) and larger.
 
-    <!-- Regular by default, large on medium and above, xlarge on large and above -->
-    <span class="value md:value--large lg:value--xlarge">
-      Responsive Value
-    </span>
+```html
+<!-- Regular by default, large on medium and above, xlarge on large and above -->
+<span class="value md:value--large lg:value--xlarge">
+  Responsive Value
+</span>
+```
 
 ### Available Breakpoints
 
-Three standard breakpoints cover all current supported TRMNL devices. Each breakpoint
- represents a minimum screen width.
+Three breakpoints cover every supported TRMNL device. Prefixes are mobile-first, so a prefix applies on its own size class and every larger one.
 
-| Prefix | Screen Class | Min Width | Example Devices |
+| Prefix | Screen Class | Applies On | Example Devices |
 | --- | --- | --- | --- |
-| `sm:` | `screen--sm` | 600px | Kindle 2024 |
-| `md:` | `screen--md` | 800px | TRMNL OG, TRMNL OG V2 |
-| `lg:` | `screen--lg` | 1024px | TRMNL V2 |
+| `sm:` | `screen--sm` | sm, md, lg | Kindle 2024 |
+| `md:` | `screen--md` | md, lg | TRMNL OG, TRMNL OG V2, Playdate, Frame |
+| `lg:` | `screen--lg` | lg | TRMNL V2, Kindle Scribe, reMarkable Paper 2 |
 
 ## Bit-Depth Responsive
 
 ### How It Works
 
-Bit-depth responsiveness adapts styles based on the display's color capabilities.
- Unlike size-based breakpoints, bit-depth variants are not progressive - each
- variant targets a specific bit-depth only.
+Bit-depth responsiveness adapts styles based on the display's color capabilities. Unlike size-based breakpoints, bit-depth variants are not progressive. Each variant targets a specific bit-depth only.
 
 When you use `4bit:bg--gray-65`, it applies only on 4-bit screens, not on 1-bit or 2-bit screens.
 
 ### Basic Usage
 
-Prefix utilities with bit-depth values to create display-specific styles. This is especially
- useful for optimizing appearance across monochrome and grayscale screens.
-
-ResponsiveBit Depth
+Prefix utilities with bit-depth values to create display-specific styles. This is especially useful for optimizing appearance across monochrome and grayscale screens.
 
 This example demonstrates bit-depth adaptation: the square appears black on 1-bit displays, gray-45 on 2-bit displays, and gray-75 on 4-bit displays. Each bit-depth variant targets only that specific display type.
 
-    <!-- black on 1-bit, gray-45 on 2-bit, gray-75 on 4-bit screens -->
-    <div class="h--36 w--36 rounded--large 1bit:bg--black 2bit:bg--gray-45 4bit:bg--gray-75"></div>
+```html
+<!-- black on 1-bit, gray-45 on 2-bit, gray-75 on 4-bit screens -->
+<div class="h--36 w--36 rounded--large 1bit:bg--black 2bit:bg--gray-45 4bit:bg--gray-75"></div>
+```
 
 ### Available Bit-Depths
 
-The framework supports three bit-depth variants corresponding to TRMNL's display technologies.
- Each targets specific color capabilities.
+The framework supports three bit-depth variants corresponding to TRMNL's display technologies. Each targets specific color capabilities.
 
 | Prefix | Screen Class | Color Support | Example Devices |
 | --- | --- | --- | --- |
@@ -110,117 +110,100 @@ The framework supports three bit-depth variants corresponding to TRMNL's display
 
 ### How It Works
 
-Orientation variants adapt styles based on whether the screen is in landscape or portrait mode.
- Since landscape is the default, only `portrait:` variants are provided to avoid redundancy.
+Orientation variants adapt styles based on whether the screen is in landscape or portrait mode. Since landscape is the default, only `portrait:` variants are provided to avoid redundancy.
 
-Portrait variants are particularly useful for layout utilities like Flexbox, where you might want different
- flex directions or alignments when the screen is rotated.
+Portrait variants are particularly useful for layout utilities like Flexbox, where you might want different flex directions or alignments when the screen is rotated.
 
 ### Basic Usage
 
-Use the `portrait:` prefix to apply styles
- only when the screen is in portrait orientation:
-
-Item 1
-
-Item 2
-
-Item 3
-
-ResponsiveOrientation Based
+Use the `portrait:` prefix to apply styles only when the screen is in portrait orientation:
 
 This example shows orientation-responsive layout: items are arranged in a row by default (landscape), but automatically switch to a column layout when the screen is in portrait orientation using `portrait:flex--col`.
 
-    <!-- Row layout in landscape, column layout in portrait -->
-    <div class="flex flex--row portrait:flex--col gap">
-      <div>Item 1</div>
-      <div>Item 2</div>
-      <div>Item 3</div>
-    </div>
+```html
+<!-- Row layout in landscape, column layout in portrait -->
+<div class="flex flex--row portrait:flex--col gap">
+  <div>Item 1</div>
+  <div>Item 2</div>
+  <div>Item 3</div>
+</div>
+```
 
 ## Combining All Systems
 
-The responsive system lets you combine size, orientation, and bit-depth variants.
- This enables highly targeted designs that adapt to screen dimensions, orientation, and color capabilities.
+The responsive system lets you combine size, orientation, and bit-depth variants. This enables highly targeted designs that adapt to screen dimensions, orientation, and color capabilities.
 
-Aa
+This advanced example combines size and bit-depth variants to target specific device configurations: `md:1bit:` targets medium+ 1-bit screens, `md:2bit:` targets medium+ 2-bit screens, and `lg:4bit:` targets large+ 4-bit screens. Dark-mode-aware utilities also support a dark-first prefix (for scoped utilities): `dark:md:portrait:2bit:`.
 
-TRMNL OG
+```html
+<!-- Orientation variant on a layout utility (size and orientation only) -->
+<div class="flex flex--row portrait:flex--col">...</div>
 
-Aa
+<!-- Size + orientation -->
+<div class="text--center md:portrait:text--left">...</div>
 
-TRMNL OG V2
-
-Aa
-
-TRMNL V2
-
-ResponsiveAdvanced Targeting
-
-This advanced example combines size and bit-depth variants to target specific device configurations: `md:1bit:` targets medium+ 1-bit screens, `md:2bit:` targets medium+ 2-bit screens, and `lg:4bit:` targets large+ 4-bit screens.
- Dark-mode-aware utilities also support a dark-first prefix (for scoped utilities): `dark:md:portrait:2bit:`.
-
-    <!-- Simple orientation variant -->
-    <div class="flex flex--row portrait:flex--col">...</div>
-
-    <!-- Size + orientation -->
-    <div class="text--center md:portrait:text--left">...</div>
-
-    <!-- All three combined: size + orientation + bit-depth -->
-    <div class="flex flex--row md:portrait:4bit:flex--col">
-      <!-- Row layout by default -->
-      <!-- Column layout on medium+ screens, in portrait, with 4-bit display -->
-    </div>
+<!-- All three combined on a bit-depth utility: size + orientation + bit-depth -->
+<div class="value md:portrait:4bit:value--large">
+  <!-- Base size by default -->
+  <!-- Large on medium+ screens, in portrait, on 4-bit displays -->
+</div>
+```
 
 ### Pattern and Order
 
-When combining variants, follow this pattern: `size:orientation:bit-depth:utility`.
- This order flows from general layout concerns to specific display characteristics.
+When combining variants, follow this pattern: `size:orientation:bit-depth:utility`. This order flows from general layout concerns to specific display characteristics.
 
-Each modifier is optional and can be used independently. You might use just `portrait:flex--col` for orientation-specific layouts,
- or `md:value--large` for size-responsive typography,
- depending on your design needs.
+Bit-depth applies only to color and typography utilities: backgrounds, text, text stroke, image stroke, font weight, value, label, title, description, content, and visibility. Layout utilities like flex, gap, grid, rounded, spacing, and size take size and orientation only. The stroke families are bit-depth-only: text stroke and image stroke have no size or orientation variants.
+
+Each modifier is optional and can be used independently. You might use just `portrait:flex--col` for orientation-specific layouts, or `md:value--large` for size-responsive typography, depending on your design needs.
 
 For utilities that support dark-mode variants (currently Visibility, Background, and Text), use: `dark:size:orientation:bit-depth:utility` with `dark:` as the first prefix.
 
+The `dark:` tier is legacy: it keeps working for the rest of Framework 3.x and will be removed in Framework 4.0. Darken a whole screen with the Dark theme ( [Themes](https://trmnl.com/framework/docs/3.2/themes) ), or one element with `inverse` ( [Inverse](https://trmnl.com/framework/docs/3.2/inverse) ). No new utility family gains the prefix.
+
 ### Specificity Hierarchy
 
-When multiple responsive variants target the same property, CSS specificity determines which style applies.
- The framework follows a clear hierarchy: the more modifiers in a class, the higher its specificity.
+When multiple responsive variants target the same property, CSS specificity determines which style applies. The framework follows a clear hierarchy: the more modifiers in a class, the higher its specificity.
 
-For example, `portrait:2bit:value--small` will
- override both `portrait:value--large` and `2bit:value--medium` when all conditions are met,
- because it has the most specific combination of modifiers.
+For example, `portrait:2bit:value--small` will override both `portrait:value--large` and `2bit:value--base` when all conditions are met, because it has the most specific combination of modifiers.
 
 ### Available Combinations
 
-The responsive system supports flexible modifier combinations, allowing you to target specific
- device configurations. The table below shows all available patterns, from simple single modifiers
- to complex multi-modifier combinations. Each combination becomes active only when all its
- conditions are met.
+The responsive system supports flexible modifier combinations, allowing you to target specific device configurations. The table below shows all available patterns, from simple single modifiers to complex multi-modifier combinations. Each combination becomes active only when all its conditions are met.
 
 | Pattern | Example | When Active | Use Case |
 | --- | --- | --- | --- |
-| `size:` | `md:value--large` | Medium screens and larger | Responsive sizing based on screen width |
+| `size:` | `md:value--large` | Medium screens and larger | Responsive sizing by device size class |
 | `orientation:` | `portrait:flex--col` | Portrait orientation only | Layout adjustments for vertical screens |
 | `bit-depth:` | `4bit:bg--gray-75` | 4-bit displays only | Color optimization for specific displays |
 | `size:orientation:` | `md:portrait:text--center` | Medium+ screens in portrait | Size-aware orientation layouts |
 | `size:bit-depth:` | `lg:2bit:value--xlarge` | Large+ screens with 2-bit display | Display-specific sizing on larger screens |
 | `orientation:bit-depth:` | `portrait:2bit:value--small` | Portrait with 2-bit display | Orientation-aware display optimization |
-| `size:orientation:bit-depth:` | `md:portrait:4bit:gap--large` | Medium+ screens, portrait, 4-bit display | Highly specific device targeting |
+| `size:orientation:bit-depth:` | `md:portrait:4bit:value--large` | Medium+ screens, portrait, 4-bit display | Highly specific device targeting |
 | `dark:size:orientation:bit-depth:` | `dark:md:portrait:2bit:hidden` | Dark mode, medium+ screens, portrait, 2-bit display | Theme-specific responsive behavior |
+
+### Related APIs
+
+#### The same grammar in SCSS
+
+The screen mixins generate device-aware rules from the same size, orientation, and bit-depth grammar these utility classes use, for styles that have no utility class. See [Sass Mixins](https://trmnl.com/framework/docs/3.2/sass_mixins) for the mixins and the scale functions.
+
+```scss
+@include trmnl.screen('md', 'portrait') {
+  .status { display: none; }
+}
+```
 
 Previous
 
-[Aspect Ratio Maintain consistent proportions for elements regardless of their content](/framework/docs/3.1/aspect_ratio)
+[Aspect Ratio Maintain consistent proportions for elements regardless of their content](https://trmnl.com/framework/docs/3.2/aspect_ratio)
 
 Next
 
-[Responsive Test Test responsive utilities and compare SCSS mixins with CSS classes](/framework/docs/3.1/responsive_test)
-
+[Responsive Test Test responsive utilities and compare SCSS mixins with CSS classes](https://trmnl.com/framework/docs/3.2/responsive_test)
 
 <!-- ============================================================
-     source: https://trmnl.com/framework/docs/3.1/responsive_test.md
+     source: https://trmnl.com/framework/docs/3.2/responsive_test
      ============================================================ -->
 
 # Responsive Test
@@ -651,57 +634,46 @@ No component tests have been implemented yet
 
 Previous
 
-[Responsive Adapt styles based on screen width using breakpoint prefixes](/framework/docs/3.1/responsive)
+[Responsive Adapt styles to the device's size class, orientation, and bit depth using variant prefixes](https://trmnl.com/framework/docs/3.2/responsive)
 
 Next
 
-[Visibility Control element visibility based on display bit depth](/framework/docs/3.1/visibility)
-
+[Visibility Control element visibility based on display bit depth](https://trmnl.com/framework/docs/3.2/visibility)
 
 <!-- ============================================================
-     source: https://trmnl.com/framework/docs/3.1/visibility.md
+     source: https://trmnl.com/framework/docs/3.2/visibility
      ============================================================ -->
 
 # Visibility
 
-The visibility and display utilities provide comprehensive control over element visibility and display types across devices. They include hidden/visible controls and display helpers like flex, grid, and inline, with responsive and bit-depth variants for device-specific layouts.
+Show or hide an element and set its display type. Hidden and visible controls plus display helpers like flex, grid, and inline, each with responsive and bit-depth variants for device-specific layouts.
 
 ## Visibility Across Devices
 
-See how visibility classes behave across different screen sizes. Each column represents a different device size.
+Every device carries a size class: `sm`, `md`, or `lg`. Each column below targets one of them, so switching the device in the screen picker changes which column has content.
 
-Small (600px)
+```html
+<!-- Always visible -->
+<div class="visible">visible</div>
 
-visible md:hidden
+<!-- Always hidden -->
+<div class="hidden">hidden</div>
 
-Medium (800px)
+<!-- Hidden by default, visible on medium+ -->
+<div class="hidden md:visible">md:visible</div>
 
-hidden md:visible lg:hidden
+<!-- Visible by default, hidden on medium+ -->
+<div class="visible md:hidden">md:hidden</div>
 
-Large (1024px)
+<!-- Visible by default, hidden on large -->
+<div class="visible lg:hidden">lg:hidden</div>
 
-hidden lg:visible
+<!-- Display as flex on medium+ -->
+<div class="hidden md:flex">md:flex</div>
 
-    <!-- Always visible -->
-    <div class="visible">visible</div>
-
-    <!-- Always hidden -->
-    <div class="hidden">hidden</div>
-
-    <!-- Hidden by default, visible on medium+ -->
-    <div class="hidden md:visible">md:visible</div>
-
-    <!-- Visible by default, hidden on medium+ -->
-    <div class="visible md:hidden">md:hidden</div>
-
-    <!-- Visible by default, hidden on large -->
-    <div class="visible lg:hidden">lg:hidden</div>
-
-    <!-- Display as flex on medium+ -->
-    <div class="hidden md:flex">md:flex</div>
-
-    <!-- Display as grid on large screens -->
-    <div class="hidden lg:grid">lg:grid</div>
+<!-- Display as grid on large screens -->
+<div class="hidden lg:grid">lg:grid</div>
+```
 
 ## Display Utilities
 
@@ -723,100 +695,99 @@ Control how elements are displayed with specific display types. These classes se
 
 ## Responsive Display Control
 
-All display utilities work with responsive prefixes[Responsive](/framework/docs/3.1/responsive) . Size prefixes are mobile-first (apply at that size and larger).
- You can combine any display utility with responsive breakpoints [Responsive](/framework/docs/3.1/responsive) .
+All display utilities take the size prefixes. They are mobile-first, so a prefix applies on its own size class and every larger one. See [Responsive](https://trmnl.com/framework/docs/3.2/responsive) for the size class each device carries.
 
 | Example Class | Effect | Active On |
 | --- | --- | --- |
-| `sm:hidden` | Hide on small screens and larger | All devices (600px+) |
-| `md:flex` | Display as flex on medium screens and larger | TRMNL OG, TRMNL V2 (800px+) |
-| `lg:grid` | Display as grid on large screens | TRMNL V2 (1024px+) |
-| `sm:inline-block` | Display as inline-block on small screens and larger | All devices (600px+) |
+| `sm:hidden` | Hide on small screens and larger | sm, md, lg (every device) |
+| `md:flex` | Display as flex on medium screens and larger | md, lg |
+| `lg:grid` | Display as grid on large screens | lg |
+| `sm:inline-block` | Display as inline-block on small screens and larger | sm, md, lg (every device) |
 
-    <!-- Basic responsive display -->
-    <div class="hidden md:block">Show as block on medium+</div>
-    <div class="block md:flex">Block by default, flex on medium+</div>
-    <div class="hidden lg:inline-grid">Show as inline-grid on large screens</div>
+```html
+<!-- Basic responsive display -->
+<div class="hidden md:block">Show as block on medium+</div>
+<div class="block md:flex">Block by default, flex on medium+</div>
+<div class="hidden lg:inline-grid">Show as inline-grid on large screens</div>
 
-    <!-- Complex responsive layouts -->
-    <div class="inline sm:inline-block md:flex lg:grid">
-      Changes display type at each breakpoint
-    </div>
+<!-- Complex responsive layouts -->
+<div class="inline sm:inline-block md:flex lg:grid">
+  Changes display type at each breakpoint
+</div>
 
-    <!-- Hide on mobile, show different layouts -->
-    <div class="hidden sm:flex md:grid lg:table">
-      Different layout per screen size
-    </div>
+<!-- Hide on mobile, show different layouts -->
+<div class="hidden sm:flex md:grid lg:table">
+  Different layout per screen size
+</div>
 
-    <!-- Table-style structures -->
-    <div class="table">
-      <div class="table-row">
-        <div class="table-cell">Cell A</div>
-        <div class="table-cell">Cell B</div>
-      </div>
-    </div>
+<!-- Table-style structures -->
+<div class="table">
+  <div class="table-row">
+    <div class="table-cell">Cell A</div>
+    <div class="table-cell">Cell B</div>
+  </div>
+</div>
+```
 
 ## Bit-Depth Display Control
 
-All display utilities work with bit-depth prefixes to target specific display capabilities.
- Perfect for optimizing layouts for different ePaper displays.
+All display utilities take the bit-depth prefixes. These are not progressive the way the size prefixes are: `2bit:` applies on 2-bit screens and nowhere else.
 
 | Example Class | Effect | Active On |
 | --- | --- | --- |
-| `1bit:hidden` | Hide on monochrome displays | TRMNL OG only |
-| `2bit:flex` | Display as flex on 4-shade grayscale displays | TRMNL OG V2 only |
-| `4bit:grid` | Display as grid on 16-shade grayscale displays | TRMNL V2, Kindle 2024 only |
+| `1bit:hidden` | Hide on monochrome displays | Every 1-bit profile (TRMNL OG, Playdate, Frame, and the color panels that dither to black and white) |
+| `2bit:flex` | Display as flex on 4-shade grayscale displays | Every 2-bit profile (TRMNL OG V2, Waveshare 5.8" B/W) |
+| `4bit:grid` | Display as grid on 16-shade grayscale displays | Every 4-bit profile (TRMNL V2, Kindle 2024, reMarkable Paper 2, and most Kobo and Inkplate panels) |
 
 ## Device-Specific Display Control
 
-Combine size and bit-depth prefixes with any display utility to target specific devices precisely.
- Use the pattern: `size:bit-depth:display`
+Combine a size and a bit-depth prefix on any display utility to narrow the target to one group of panels. Use the pattern `size:bit-depth:display`.
 
 | Example Class | Target Device | Effect |
 | --- | --- | --- |
-| `md:1bit:block` | TRMNL OG only | Display as block (800px, monochrome) |
-| `md:2bit:flex` | TRMNL OG V2 only | Display as flex (800px, 4-shade grayscale) |
-| `lg:4bit:grid` | TRMNL V2 only | Display as grid (1024px, 16-shade grayscale) |
-| `sm:4bit:table` | Kindle 2024 only | Display as table (600px, 16-shade grayscale) |
+| `md:1bit:block` | 1-bit screens at md or lg (TRMNL OG, Frame) | Display as block |
+| `md:2bit:flex` | 2-bit screens at md or lg (TRMNL OG V2, Waveshare 5.8" B/W) | Display as flex |
+| `lg:4bit:grid` | 4-bit screens at lg (TRMNL V2, Kindle Scribe, reMarkable Paper 2, and 11 more) | Display as grid |
+| `sm:4bit:table` | Every 4-bit screen, since sm is the smallest size class | Display as table |
 
-    <!-- Device-specific layouts -->
-    <div class="hidden md:1bit:block md:2bit:flex lg:4bit:grid">
-      Different display types per device generation
-    </div>
+```html
+<!-- Device-specific layouts -->
+<div class="hidden md:1bit:block md:2bit:flex lg:4bit:grid">
+  Different display types per device generation
+</div>
 
-    <!-- Optimize for ePaper performance -->
-    <div class="table 1bit:block 2bit:flex">
-      Simple layouts for lower bit-depth displays
-    </div>
+<!-- Optimize for ePaper performance -->
+<div class="table 1bit:block 2bit:flex">
+  Simple layouts for lower bit-depth displays
+</div>
 
-    <!-- Complex responsive + bit-depth targeting -->
-    <div class="hidden sm:inline md:1bit:block md:2bit:flex lg:4bit:grid">
-      Progressive enhancement across all device capabilities
-    </div>
+<!-- Complex responsive + bit-depth targeting -->
+<div class="hidden sm:inline md:1bit:block md:2bit:flex lg:4bit:grid">
+  Progressive enhancement across all device capabilities
+</div>
+```
 
 ## Dark Mode Display Control
 
-Visibility utilities support dark-first prefixes for screen dark mode targeting.
- Use `dark:` to show or hide content by screen dark mode.
- Light-mode behavior is the default state.
+Visibility utilities support dark-first prefixes for screen dark mode targeting. Use `dark:` to show or hide content by screen dark mode. Light-mode behavior is the default state.
 
-    <!-- Hide only in dark mode -->
-    <div class="dark:hidden">Dark mode hides this</div>
+```html
+<!-- Hide only in dark mode -->
+<div class="dark:hidden">Dark mode hides this</div>
 
-    <!-- Show only in dark mode -->
-    <div class="hidden dark:block">Dark mode shows this</div>
+<!-- Show only in dark mode -->
+<div class="hidden dark:block">Dark mode shows this</div>
 
-    <!-- Combined targeting -->
-    <div class="dark:md:portrait:2bit:hidden">
-      Hidden on dark medium+ portrait 2-bit screens
-    </div>
+<!-- Combined targeting -->
+<div class="dark:md:portrait:2bit:hidden">
+  Hidden on dark medium+ portrait 2-bit screens
+</div>
+```
 
 Previous
 
-[Responsive Test Test responsive utilities and compare SCSS mixins with CSS classes](/framework/docs/3.1/responsive_test)
+[Responsive Test Test responsive utilities and compare SCSS mixins with CSS classes](https://trmnl.com/framework/docs/3.2/responsive_test)
 
 Next
 
-[Background Apply color tokens as backgrounds with bg--{token}](/framework/docs/3.1/background)
-
-
+[Background Apply color tokens as backgrounds with bg--{token}](https://trmnl.com/framework/docs/3.2/background)
