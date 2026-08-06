@@ -29,6 +29,7 @@
   </div>
   {% else %}
     <span class="label">{{ error | default: "Set the plugin's agency and route." }}</span>
+    {% if detail %}<span class="label label--small">{{ detail }}</span>{% endif %}
   {% endif %}
 </div>
 
